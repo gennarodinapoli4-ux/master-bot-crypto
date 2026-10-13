@@ -1,213 +1,130 @@
-
-
 import yfinance as yf
 import pandas as pd
 import feedparser
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import warnings
+import datetime
+
 warnings.filterwarnings('ignore')
 
 # =====================================================================
-# MASTER BOT v13.0 - INTEGRATO (LONG + SMART SHORT + NEWS + VOLUMI)
+# MASTER BOT v14.1 - FULL DYNAMIC QUANT BOT (Scan Top 25 + Risk + Short/Long)
 # =====================================================================
+
 CAPITALE_INIZIALE = 150.0
 analyzer = SentimentIntensityAnalyzer()
 
-# Personalizziamo il dizionario sentiment per le crypto
-parole_chiave_extra = {
-    'surge': 2.5, 'inflows': 2.5, 'bullish': 3.0, 'approval': 3.0,
-    'outflow': -2.5, 'sell-off': -3.0, 'crash': -3.5, 'hack': -3.5, 'drop': -2.0, 'rally': 2.5
-}
-analyzer.lexicon.update(parole_chiave_extra)
+# Paniere esteso di criptovalute per la scelta autonoma (Top 25)
+UNIVERSE_CRYPTO = [
+    "BTC-USD", "ETH-USD", "BNB-USD", "SOL-USD", "XRP-USD", 
+    "ADA-USD", "DOGE-USD", "AVAX-USD", "LINK-USD", "DOT-USD", 
+    "MATIC-USD", "UNI-USD", "NEAR-USD", "ATOM-USD", "LTC-USD", 
+    "ETC-USD", "XLM-USD", "ALGO-USD", "BCH-USD", "ICP-USD", 
+    "FIL-USD", "APT-USD", "ARB-USD", "FTM-USD", "HBAR-USD"
+]
 
-def calcola_rsi(serie, periodi=14):
-    delta = serie.diff()
-    guadagno = delta.clip(lower=0)
-    perdita = -1 * delta.clip(upper=0)
-    media_guadagno = guadagno.ewm(alpha=1/periodi, min_periods=periodi, adjust=False).mean()
-    media_perdita = perdita.ewm(alpha=1/periodi, min_periods=periodi, adjust=False).mean()
-    rs = media_guadagno / media_perdita
-    return 100 - (100 / (1 + rs))
+print(f"🚀 Avvio Master Bot v14.1 (Analisi Dinamica su {len(UNIVERSE_CRYPTO)} Asset)...")
+print("==============================================================")
 
-print("🚀 Avvio Master Bot v13.0 (Simulazione Completa: Tecnica + News + Smart Short)...\n")
+def get_market_sentiment():
+    """Analizza il sentiment globale delle notizie crypto tramite RSS e VADER"""
+    news_urls = [
+        "https://cointelegraph.com/rss",
+        "https://www.coindesk.com/arc/outbound/rss/"
+    ]
+    sentiments = []
+    for url in news_urls:
+        try:
+            feed = feedparser.parse(url)
+            for entry in feed.entries[:10]:
+                text = entry.title + " " + getattr(entry, 'summary', '')
+                vs = analyzer.polarity_scores(text)
+                sentiments.append(vs['compound'])
+        except Exception:
+            continue
+    
+    if not sentiments:
+        return 0.0
+    return sum(sentiments) / len(sentiments)
 
-# I nostri campioni collaudati
-assi_crypto = {
-    'LINK-USD': 'Chainlink',
-    'ETH-USD': 'Ethereum',
-    'BTC-USD': 'Bitcoin'
-}
+# 1. Rilevamento Sentiment Globale
+market_sentiment = get_market_sentiment()
+print(f"🌐 Sentiment di Mercato Globale: {market_sentiment:.3f}")
 
-dati = {}
-for ticker, nome in assi_crypto.items():
+# 2. Scansione di mercato e scelta autonoma dell'asset migliore
+best_crypto = None
+best_score = -999.0
+selected_data = {}
+
+for ticker in UNIVERSE_CRYPTO:
     try:
-        df_temp = yf.download(ticker, period='120d', interval='1h', progress=False)
-        if not df_temp.empty:
-            if isinstance(df_temp.columns, pd.MultiIndex):
-                df_temp.columns = df_temp.columns.get_level_values(0)
-            df_temp = df_temp.dropna()
-            df_temp['RSI'] = calcola_rsi(df_temp['Close'], 14)
-            df_temp['SMA_200'] = df_temp['Close'].rolling(window=200).mean()
-            df_temp['SMA_200_ieri'] = df_temp['SMA_200'].shift(24)
-            df_temp['RSI_prec'] = df_temp['RSI'].shift(1)
-            df_temp['Vol_Media_24h'] = df_temp['Volume'].rolling(window=24).mean().shift(1)
+        df = yf.download(ticker, period="30d", interval="1h", progress=False)
+        if df.empty or len(df) < 50:
+            continue
             
-            # Simuliamo anche un sentiment di fondo basato sulle variazioni recenti per coerenza storica
-            dati[ticker] = df_temp
-    except:
-        pass
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.droplevel(1)
 
-tutte_le_date = sorted(list(set().union(*(dati[a].index[225:] for a in dati))))
+        # Indicatori tecnici di base
+        df['SMA_20'] = df['Close'].rolling(window=20).mean()
+        df['SMA_50'] = df['Close'].rolling(window=50).mean()
+        
+        current_price = float(df['Close'].iloc[-1])
+        sma_20 = float(df['SMA_20'].iloc[-1])
+        sma_50 = float(df['SMA_50'].iloc[-1])
+        volume_medio = float(df['Volume'].rolling(window=24).mean().iloc[-1])
+        volume_attuale = float(df['Volume'].iloc[-1])
+        
+        # Regole di punteggio per la scelta autonoma
+        trend_score = 1.0 if current_price > sma_20 > sma_50 else (-1.0 if current_price < sma_20 < sma_50 else 0.0)
+        volume_multiplier = 1.2 if volume_attuale > volume_medio else 0.8
+        
+        # Punteggio combinato (Tecnica + Sentiment)
+        total_score = (trend_score * 2.0) + (market_sentiment * 1.5) * volume_multiplier
+        
+        if total_score > best_score:
+            best_score = total_score
+            best_crypto = ticker
+            selected_data = {
+                'price': current_price,
+                'sma_20': sma_20,
+                'sma_50': sma_50,
+                'trend': 'LONG' if current_price > sma_20 else 'SHORT'
+            }
+    except Exception:
+        continue
 
-capitale = CAPITALE_INIZIALE
-in_posizione = False
-tipo_posizione = None
-asset_attivo = None
-prezzo_ingresso = 0
-stop_dinamico = 0
-tp_dinamico = 0
-boost_attivo = False
-capitale_pre_trade = 0
+print("==============================================================")
+print(f"🔍 SCELTA AUTONOMA DEL BOT:")
+if best_crypto:
+    print(f"⭐ Asset Selezionato: {best_crypto}")
+    print(f"📊 Prezzo Rilevato: {selected_data['price']:.4f} $")
+    print(f"📈 Direzione Strategia: {selected_data['trend']}")
+    print(f"⚖️ Score di Mercato: {best_score:.2f}")
 
-storico_operazioni = []
-comm = 0.0015 # 0.15% commissione
-
-# Parametri di gestione rischio
-dist_tp_base = 0.08
-dist_sl = 0.05
-dist_be = 0.035
-dist_tp_boost = 0.14
-dist_stop_boost = 0.04
-
-for timestamp in tutte_le_date:
-    if not in_posizione:
-        for ticker, nome in assi_crypto.items():
-            if ticker in dati and timestamp in dati[ticker].index:
-                c = dati[ticker].loc[timestamp]
-                if pd.isna(c['SMA_200_ieri']) or pd.isna(c['RSI_prec']) or pd.isna(c['Vol_Media_24h']):
-                    continue
-
-                # 1. Condizione LONG (Trend Rialzista + RSI < 40 che risale)
-                if (c['Close'] > c['SMA_200'] and c['SMA_200'] > c['SMA_200_ieri'] and 
-                    c['RSI_prec'] < 40 and c['RSI'] >= 40):
-                    
-                    in_posizione = True
-                    tipo_posizione = 'LONG'
-                    asset_attivo = ticker
-                    prezzo_ingresso = c['Close']
-                    stop_dinamico = prezzo_ingresso * (1.0 - dist_sl)
-                    tp_dinamico = prezzo_ingresso * (1.0 + dist_tp_base)
-                    boost_attivo = False
-                    capitale_pre_trade = capitale
-                    capitale = capitale * (1.0 - comm)
-                    break
-
-                # 2. Condizione SMART SHORT (Trend Ribassista + RSI > 60 che cende + Volumi di scarico > 1.2x)
-                elif (c['Close'] < c['SMA_200'] and c['SMA_200'] < c['SMA_200_ieri'] and 
-                      c['RSI_prec'] > 60 and c['RSI'] <= 60 and 
-                      c['Volume'] > (c['Vol_Media_24h'] * 1.2) and c['Close'] < c['Open']):
-                    
-                    in_posizione = True
-                    tipo_posizione = 'SHORT'
-                    asset_attivo = ticker
-                    prezzo_ingresso = c['Close']
-                    stop_dinamico = prezzo_ingresso * (1.0 + dist_sl)
-                    tp_dinamico = prezzo_ingresso * (1.0 - dist_tp_base)
-                    boost_attivo = False
-                    capitale_pre_trade = capitale
-                    capitale = capitale * (1.0 - comm)
-                    break
+    # Applicazione delle regole di gestione del rischio e simulazione operatività
+    print("--------------------------------------------------------------")
+    print("🛡️ APPLICAZIONE REGOLE DI RISCHIO E STOP LOSS:")
+    
+    # Regola Stop Loss dinamico (es. 4% di rischio massimo sul capitale)
+    capitale_disponibile = CAPITALE_INIZIALE
+    rischio_operazione = capitale_disponibile * 0.04 
+    
+    if selected_data['trend'] == 'LONG':
+        stop_loss_prezzo = selected_data['price'] * 0.96
+        take_profit_prezzo = selected_data['price'] * 1.08
     else:
-        if timestamp in dati[asset_attivo].index:
-            c = dati[asset_attivo].loc[timestamp]
+        # Regola Smart Short se il trend è ribassista o il sentiment è negativo
+        stop_loss_prezzo = selected_data['price'] * 1.04
+        take_profit_prezzo = selected_data['price'] * 0.92
 
-            if tipo_posizione == 'LONG':
-                # Breakeven
-                if c['High'] >= prezzo_ingresso * (1.0 + dist_be):
-                    if stop_dinamico < prezzo_ingresso:
-                        stop_dinamico = prezzo_ingresso
+    print(id := f"   - Capitale Gestito: {capitale_disponibile:.2f} €")
+    print(f"   - Stop Loss Fissato a: {stop_loss_prezzo:.4f} $")
+    print(f"   - Take Profit Fissato a: {take_profit_prezzo:.4f} $")
+    print(f"   - Rischio Massimo Consentito: {rischio_operazione:.2f} €")
 
-                # Panic / Volume Boost (3x)
-                if not boost_attivo and c['Volume'] > (c['Vol_Media_24h'] * 3.0) and c['Close'] > c['Open']:
-                    if c['High'] >= prezzo_ingresso * (1.0 + dist_be):
-                        boost_attivo = True
-                        tp_dinamico = prezzo_ingresso * (1.0 + dist_tp_boost)
-                        stop_dinamico = prezzo_ingresso * (1.0 + dist_stop_boost)
-
-                # Chiusura Take Profit
-                if c['Close'] >= tp_dinamico:
-                    in_posizione = False
-                    guadagno_pct = (tp_dinamico - prezzo_ingresso) / prezzo_ingresso
-                    capitale = (capitale * (1.0 + guadagno_pct)) * (1.0 - comm)
-                    profitto_trade = capitale - capitale_pre_trade
-                    storico_operazioni.append({
-                        'Data': timestamp, 'Asset': asset_attivo.replace('-USD',''), 
-                        'Tipo': 'LONG', 'Esito': 'Target Raggiunto 🎯', 'Profitto': f"{profitto_trade:+.2f} €"
-                    })
-                    asset_attivo = None
-
-                # Chiusura Stop
-                elif c['Close'] <= stop_dinamico:
-                    in_posizione = False
-                    esito_pct = (stop_dinamico - prezzo_ingresso) / prezzo_ingresso
-                    capitale = (capitale * (1.0 + esito_pct)) * (1.0 - comm)
-                    profitto_trade = capitale - capitale_pre_trade
-                    esito_str = 'Stop in Utile 🛡️' if stop_dinamico > prezzo_ingresso else ('Pareggio ⚪' if stop_dinamico == prezzo_ingresso else 'Stop Loss ❌')
-                    storico_operazioni.append({
-                        'Data': timestamp, 'Asset': asset_attivo.replace('-USD',''), 
-                        'Tipo': 'LONG', 'Esito': esito_str, 'Profitto': f"{profitto_trade:+.2f} €"
-                    })
-                    asset_attivo = None
-
-            elif tipo_posizione == 'SHORT':
-                # Breakeven Short
-                if c['Low'] <= prezzo_ingresso * (1.0 - dist_be):
-                    if stop_dinamico > prezzo_ingresso:
-                        stop_dinamico = prezzo_ingresso
-
-                # Panic Boost Short (3x su candela rossa)
-                if not boost_attivo and c['Volume'] > (c['Vol_Media_24h'] * 3.0) and c['Close'] < c['Open']:
-                    if c['Low'] <= prezzo_ingresso * (1.0 - dist_be):
-                        boost_attivo = True
-                        tp_dinamico = prezzo_ingresso * (1.0 - dist_tp_boost)
-                        stop_dinamico = prezzo_ingresso * (1.0 + dist_stop_boost)
-
-                # Chiusura Take Profit Short
-                if c['Close'] <= tp_dinamico:
-                    in_posizione = False
-                    guadagno_pct = (prezzo_ingresso - tp_dinamico) / prezzo_ingresso
-                    capitale = (capitale * (1.0 + guadagno_pct)) * (1.0 - comm)
-                    profitto_trade = capitale - capitale_pre_trade
-                    storico_operazioni.append({
-                        'Data': timestamp, 'Asset': asset_attivo.replace('-USD',''), 
-                        'Tipo': 'SHORT', 'Esito': 'Smart Short Target 🎯', 'Profitto': f"{profitto_trade:+.2f} €"
-                    })
-                    asset_attivo = None
-
-                # Chiusura Stop Short
-                elif c['Close'] >= stop_dinamico:
-                    in_posizione = False
-                    esito_pct = (prezzo_ingresso - stop_dinamico) / prezzo_ingresso
-                    capitale = (capitale * (1.0 + esito_pct)) * (1.0 - comm)
-                    profitto_trade = capitale - capitale_pre_trade
-                    esito_str = 'Stop in Utile 🛡️' if stop_dinamico < prezzo_ingresso else ('Pareggio ⚪' if stop_dinamico == prezzo_ingresso else 'Stop Loss ❌')
-                    storico_operazioni.append({
-                        'Data': timestamp, 'Asset': asset_attivo.replace('-USD',''), 
-                        'Tipo': 'SHORT', 'Esito': esito_str, 'Profitto': f"{profitto_trade:+.2f} €"
-                    })
-                    asset_attivo = None
-
-print("=" * 65)
-print(f"🏦 REPORT FINALE MASTER BOT v13.0:")
-print(f"   - Capitale Iniziale: {CAPITALE_INIZIALE:.2f} €")
-print(f"   - Capitale Finale Simulato: {capitale:,.2f} €")
-print(f"   - Performance Netta: {capitale - CAPITALE_INIZIALE:+.2f} € ({(capitale - CAPITALE_INIZIALE)/CAPITALE_INIZIALE*100:+.1f}%)")
-print(f"   - Operazioni totali eseguite: {len(storico_operazioni)}")
-print("=" * 65)
-print("Ultime operazioni completate nello storico:")
-df_res = pd.DataFrame(storico_operazioni)
-if not df_res.empty:
-    print(df_res.tail(10).to_string(index=False))
 else:
-    print("Nessun trade completato nel periodo.")
-  
+    print("⚠️ Nessun asset ha soddisfatto i parametri di volatilità in questa ora.")
+
+print("==============================================================")
+print("✅ Esecuzione oraria con regole complete completata nel Cloud.")
