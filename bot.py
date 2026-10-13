@@ -1,4 +1,4 @@
-!pip install vaderSentiment feedparser -q
+
 
 import yfinance as yf
 import pandas as pd
