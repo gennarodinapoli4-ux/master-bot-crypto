@@ -8,22 +8,22 @@ import datetime
 warnings.filterwarnings('ignore')
 
 # =====================================================================
-# MASTER BOT v14.1 - FULL DYNAMIC QUANT BOT (Scan Top 25 + Risk + Short/Long)
+# MASTER BOT v14.2 - DYNAMIC QUANT BOT (Clean Universe + Risk + Short/Long)
 # =====================================================================
 
 CAPITALE_INIZIALE = 150.0
 analyzer = SentimentIntensityAnalyzer()
 
-# Paniere esteso di criptovalute per la scelta autonoma (Top 25)
+# Paniere pulito e stabile delle principali criptovalute
 UNIVERSE_CRYPTO = [
     "BTC-USD", "ETH-USD", "BNB-USD", "SOL-USD", "XRP-USD", 
     "ADA-USD", "DOGE-USD", "AVAX-USD", "LINK-USD", "DOT-USD", 
-    "MATIC-USD", "UNI-USD", "NEAR-USD", "ATOM-USD", "LTC-USD", 
-    "ETC-USD", "XLM-USD", "ALGO-USD", "BCH-USD", "ICP-USD", 
-    "FIL-USD", "APT-USD", "ARB-USD", "FTM-USD", "HBAR-USD"
+    "UNI-USD", "NEAR-USD", "ATOM-USD", "LTC-USD", "ETC-USD", 
+    "XLM-USD", "ALGO-USD", "BCH-USD", "ICP-USD", "FIL-USD", 
+    "APT-USD", "ARB-USD", "FTM-USD", "HBAR-USD"
 ]
 
-print(f"🚀 Avvio Master Bot v14.1 (Analisi Dinamica su {len(UNIVERSE_CRYPTO)} Asset)...")
+print(f"🚀 Avvio Master Bot v14.2 (Analisi Dinamica su {len(UNIVERSE_CRYPTO)} Asset)...")
 print("==============================================================")
 
 def get_market_sentiment():
@@ -106,7 +106,6 @@ if best_crypto:
     print("--------------------------------------------------------------")
     print("🛡️ APPLICAZIONE REGOLE DI RISCHIO E STOP LOSS:")
     
-    # Regola Stop Loss dinamico (es. 4% di rischio massimo sul capitale)
     capitale_disponibile = CAPITALE_INIZIALE
     rischio_operazione = capitale_disponibile * 0.04 
     
@@ -114,11 +113,10 @@ if best_crypto:
         stop_loss_prezzo = selected_data['price'] * 0.96
         take_profit_prezzo = selected_data['price'] * 1.08
     else:
-        # Regola Smart Short se il trend è ribassista o il sentiment è negativo
         stop_loss_prezzo = selected_data['price'] * 1.04
         take_profit_prezzo = selected_data['price'] * 0.92
 
-    print(id := f"   - Capitale Gestito: {capitale_disponibile:.2f} €")
+    print(f"   - Capitale Gestito: {capitale_disponibile:.2f} €")
     print(f"   - Stop Loss Fissato a: {stop_loss_prezzo:.4f} $")
     print(f"   - Take Profit Fissato a: {take_profit_prezzo:.4f} $")
     print(f"   - Rischio Massimo Consentito: {rischio_operazione:.2f} €")
