@@ -2,8 +2,8 @@
     "slot_1": {
         "symbol": "ETH-USD",
         "type": "SHORT",
-        "entry_price": 0.0,
-        "max_price": 0.0,
+        "entry_price": 2478.01,
+        "max_price": 2478.01,
         "active": true,
         "current_price": 2428.29,
         "pnl_net_percent": 0.0
