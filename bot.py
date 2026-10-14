@@ -23,15 +23,13 @@ nltk.download('vader_lexicon', quiet=True)
 sia = SentimentIntensityAnalyzer()
 
 # ==========================================
-# CONFIGURAZIONE TELEGRAM & PORTAFOGLIO
+# CONFIGURAZIONE PORTAFOGLIO & FEE
 # ==========================================
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
-
 TOTAL_CAPITAL = 500.0  # Capitale totale a 500 $
 NUM_SLOTS = 3
 SLOT_CAPITAL = TOTAL_CAPITAL / NUM_SLOTS  # ~166 $ per slot
 STATE_FILE = "portafoglio_stato.json"
+EXCHANGE_FEE_RATE = 0.001  # 0.1% fee per operazione (0.2% totale round-trip)
 
 # ==========================================
 # WHITELIST ISTITUZIONALE & TOP ESPERTI
@@ -41,21 +39,10 @@ INSTITUTIONAL_WHITELIST = [
     "Vitalik Buterin", "CoinMetrics", "WatcherGuru", "Wu Blockchain"
 ]
 
-def send_telegram_alert(message):
-    if not TELEGRAM_BOT_TOKEN:
-        return
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"}
-    try:
-        requests.post(url, json=payload, timeout=10)
-    except Exception as e:
-        print(f"Errore Telegram: {e}")
-
 # ==========================================
-# GESTIONE STATO SLOT (MEMORIA DI FERRO)
+# GESTIONE STATO SLOT (MEMORIA PERSISTENTE)
 # ==========================================
 def load_state():
-    # Se il file di stato esiste, lo legge e mantiene esattamente ciò che c'è dentro (memoria persistente)
     if os.path.exists(STATE_FILE):
         try:
             with open(STATE_FILE, "r") as f:
@@ -65,7 +52,6 @@ def load_state():
         except Exception as e:
             print(f"Errore lettura stato esistente: {e}")
             
-    # Crea lo stato iniziale SOLO se il file non esiste (la primissima volta in assoluto)
     initial_state = {
         "slot_1": {"symbol": "ETH-USD", "type": "SHORT", "entry_price": 0.0, "max_price": 0.0, "active": True},
         "slot_2": {"symbol": None, "type": None, "entry_price": 0.0, "max_price": 0.0, "active": False},
@@ -170,14 +156,58 @@ def analyze_market(symbol):
         return None, 0, 0
 
 # ==========================================
-# 3. ESECUZIONE PRINCIPALE (GESTIONE 3 SLOT)
+# 3. ESECUZIONE PRINCIPALE (MONITORAGGIO & 3 SLOT)
 # ==========================================
 def run_trading_bot():
-    print(f"[{datetime.now()}] Avvio scansione v17.0 (Memoria Persistente + 500$ + 3 Slot)...")
+    print(f"[{datetime.now()}] Avvio scansione v18.0 (Memoria + Fee + 3 Slot)...")
     
     state = load_state()
-    print(f"Stato Slot attuale -> Slot 1: {state['slot_1']['symbol']} ({state['slot_1']['active']}) | Slot 2: {state['slot_2']['symbol']} ({state['slot_2']['active']}) | Slot 3: {state['slot_3']['symbol']} ({state['slot_3']['active']})")
 
+    # --- MONITORAGGIO ATTIVO POSIZIONI E CALCOLO P&L NETTO (CON FEE) ---
+    print("\n--- MONITORAGGIO POSIZIONI ATTIVE & P&L (NETTO FEE) ---")
+    for slot_key, slot in state.items():
+        if slot['active'] and slot['symbol']:
+            sym = slot['symbol']
+            pos_type = slot['type']
+            entry = slot['entry_price']
+            
+            # Recupera prezzo attuale
+            curr_price = entry
+            try:
+                df_m = yf.download(sym, period="1d", interval="1m", progress=False)
+                if not df_m.empty:
+                    if isinstance(df_m.columns, pd.MultiIndex):
+                        df_m.columns = df_m.columns.get_level_values(0)
+                    curr_price = float(df_m['Close'].iloc[-1])
+            except Exception as e:
+                print(f"Impossibile aggiornare prezzo per {sym}: {e}")
+
+            # Calcolo P&L (se entry_price è salvato)
+            if entry > 0:
+                if pos_type == "LONG":
+                    pnl_gross = ((curr_price - entry) / entry) * 100
+                else: # SHORT
+                    pnl_gross = ((entry - curr_price) / entry) * 100
+                
+                # Detrazione fee (0.1% ingresso + 0.1% uscita stimata = 0.2% totale)
+                pnl_net = pnl_gross - (EXCHANGE_FEE_RATE * 2 * 100)
+            else:
+                pnl_gross = 0.0
+                pnl_net = 0.0
+
+            # Aggiornamento dati nello stato
+            slot['current_price'] = round(curr_price, 4)
+            slot['pnl_net_percent'] = round(pnl_net, 2)
+            
+            print(f"[{slot_key.upper()}] Asset: {sym} | Tipo: {pos_type} | Ingresso: {entry:.4f} | Attuale: {curr_price:.4f} | PnL Netto (fee incl.): {pnl_net:+.2f}%")
+        else:
+            print(f"[{slot_key.upper()}] Slot Libero")
+    print("-------------------------------------------------------\n")
+
+    # Salva subito gli aggiornamenti di prezzo e PnL nel file JSON
+    save_state(state)
+
+    # Verifica slot liberi per eventuale apertura di nuove posizioni
     free_slots = [key for key, slot in state.items() if not slot['active']]
 
     if free_slots:
@@ -185,7 +215,6 @@ def run_trading_bot():
         max_score = 0
 
         for crypto in CRYPTO_LIST:
-            # Evita di comprare un asset se è già attivo in un altro slot
             if any(slot['symbol'] == crypto for slot in state.values() if slot['active']):
                 continue
                 
@@ -203,17 +232,17 @@ def run_trading_bot():
                 "type": signal,
                 "entry_price": float(price),
                 "max_price": float(price),
+                "current_price": float(price),
+                "pnl_net_percent": 0.0,
                 "active": True
             }
             save_state(state)
 
-            msg = f"🚀 Nuova Apertura ({target_slot.upper()}) | Asset: {crypto} | Direzione: {signal} | Prezzo: {price:.2f} | Capitale Slot: {SLOT_CAPITAL:.1f}$"
-            print(msg)
-            send_telegram_alert(msg)
+            print(f"🚀 Nuova Apertura ({target_slot.upper()}) | Asset: {crypto} | Direzione: {signal} | Prezzo: {price:.2f} | Capitale Slot: {SLOT_CAPITAL:.1f}$")
         else:
             print("Nessun asset ha superato i filtri in questo ciclo.")
     else:
-        print("Tutti i 3 slot sono occupati. Monitoraggio posizioni aperte in corso...")
+        print("Tutti i 3 slot sono occupati. Monitoraggio completato.")
 
 if __name__ == "__main__":
     run_trading_bot()
