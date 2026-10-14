@@ -14,10 +14,10 @@
         "active": true
     },
     "slot_3": {
-        "symbol": null,
-        "type": null,
-        "entry_price": 0.0,
-        "max_price": 0.0,
-        "active": false
+        "symbol": "CRV-USD",
+        "type": "SHORT",
+        "entry_price": 0.3278000056743622,
+        "max_price": 0.3278000056743622,
+        "active": true
     }
 }
