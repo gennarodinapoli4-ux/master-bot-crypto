@@ -32,7 +32,7 @@ jobs:
         run: |
           git config --global user.name "Master Bot Auto"
           git config --global user.email "bot@github.com"
-          git add stato_portafoglio.json storico_operazioni.csv || true
+          git add stato_portafoglio.json || true
+          git add storico_operazioni.csv || true
           git diff --staged --quiet || git commit -m "Aggiornamento automatico portafoglio e storico"
           git push
-          
