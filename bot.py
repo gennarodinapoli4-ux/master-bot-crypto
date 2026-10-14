@@ -1,4 +1,15 @@
 import os
+import sys
+import subprocess
+
+# --- AUTO-INSTALLAZIONE DI SICUREZZA PER GITHUB ACTIONS ---
+required_packages = ['pandas', 'yfinance', 'requests', 'nltk']
+for package in required_packages:
+    try:
+        __import__(package)
+    except ImportError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
 import json
 import requests
 import pandas as pd
