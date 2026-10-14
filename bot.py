@@ -121,7 +121,7 @@ def analyze_market(symbol):
     try:
         df = yf.download(symbol, period="5d", interval="1h", progress=False)
         if df.empty or len(df) < 50:
-            return None, 0
+            return None, 0, 0
         
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.get_level_values(0)
