@@ -1,0 +1,18 @@
+{
+    "capitale": 150.0,
+    "vinte": 0,
+    "perse": 0,
+    "commissioni_pagate": 0.0,
+    "posizione_aperta": {
+        "ticker": "ETH-USD",
+        "tipo": "SHORT",
+        "capitale_investito": 150.0,
+        "dollari_investiti": 167.11,
+        "quantita": 0.06733602138103627,
+        "entry_price": 2478.010009765625,
+        "sl": 2577.13041015625,
+        "tp": 2106.3085083007813,
+        "breakeven_attivo": false,
+        "data_apertura": "2026-10-14 12:41 UTC"
+    }
+}
