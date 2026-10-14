@@ -5,8 +5,8 @@
         "entry_price": 2478.01,
         "max_price": 2478.01,
         "active": true,
-        "current_price": 2409.3501,
-        "pnl_net_percent": 2.57
+        "current_price": 2415.21,
+        "pnl_net_percent": 2.33
     },
     "slot_2": {
         "symbol": "TIA-USD",
@@ -14,8 +14,8 @@
         "entry_price": 0.5526000261306763,
         "max_price": 0.5526000261306763,
         "active": true,
-        "current_price": 0.5528,
-        "pnl_net_percent": -0.24
+        "current_price": 0.5534,
+        "pnl_net_percent": -0.34
     },
     "slot_3": {
         "symbol": "CRV-USD",
@@ -23,7 +23,7 @@
         "entry_price": 0.3278000056743622,
         "max_price": 0.3278000056743622,
         "active": true,
-        "current_price": 0.3252,
-        "pnl_net_percent": 0.59
+        "current_price": 0.329,
+        "pnl_net_percent": -0.57
     }
 }
