@@ -1,0 +1,23 @@
+{
+    "slot_1": {
+        "symbol": "ETH-USD",
+        "type": "SHORT",
+        "entry_price": 0.0,
+        "max_price": 0.0,
+        "active": true
+    },
+    "slot_2": {
+        "symbol": "TIA-USD",
+        "type": "SHORT",
+        "entry_price": 0.5526000261306763,
+        "max_price": 0.5526000261306763,
+        "active": true
+    },
+    "slot_3": {
+        "symbol": null,
+        "type": null,
+        "entry_price": 0.0,
+        "max_price": 0.0,
+        "active": false
+    }
+}
