@@ -27,9 +27,9 @@ sia = SentimentIntensityAnalyzer()
 # ==========================================
 TOTAL_CAPITAL = 500.0  # Capitale totale a 500 $
 NUM_SLOTS = 3
-SLOT_CAPITAL = TOTAL_CAPITAL / NUM_SLOTS  # ~166 $ per slot
+SLOT_CAPITAL = TOTAL_CAPITAL / NUM_SLOTS  # ~166.7 $ per slot
 STATE_FILE = "portafoglio_stato.json"
-EXCHANGE_FEE_RATE = 0.001  # 0.1% fee per operazione (0.2% totale round-trip)
+EXCHANGE_FEE_RATE = 0.001  # 0.1% fee per operazione (0.2% totale)
 
 # ==========================================
 # WHITELIST ISTITUZIONALE & TOP ESPERTI
@@ -53,9 +53,9 @@ def load_state():
             print(f"Errore lettura stato esistente: {e}")
             
     initial_state = {
-        "slot_1": {"symbol": "ETH-USD", "type": "SHORT", "entry_price": 0.0, "max_price": 0.0, "active": True},
-        "slot_2": {"symbol": None, "type": None, "entry_price": 0.0, "max_price": 0.0, "active": False},
-        "slot_3": {"symbol": None, "type": None, "entry_price": 0.0, "max_price": 0.0, "active": False}
+        "slot_1": {"symbol": "ETH-USD", "type": "SHORT", "entry_price": 2478.01, "max_price": 2478.01, "active": True},
+        "slot_2": {"symbol": "TIA-USD", "type": "SHORT", "entry_price": 0.5526, "max_price": 0.5526, "active": True},
+        "slot_3": {"symbol": "CRV-USD", "type": "SHORT", "entry_price": 0.3278, "max_price": 0.3278, "active": True}
     }
     save_state(initial_state)
     return initial_state
@@ -156,15 +156,15 @@ def analyze_market(symbol):
         return None, 0, 0
 
 # ==========================================
-# 3. ESECUZIONE PRINCIPALE (MONITORAGGIO & 3 SLOT)
+# 3. ESECUZIONE PRINCIPALE (DASHBOARD & 3 SLOT)
 # ==========================================
 def run_trading_bot():
-    print(f"[{datetime.now()}] Avvio scansione v18.0 (Memoria + Fee + 3 Slot)...")
+    print(f"[{datetime.now()}] 🚀 Avvio Master Bot v19.1 (Multi-Slot Dashboard + Sentiment + Fee) - 2026-10-14")
+    print("==================================================================")
     
     state = load_state()
-
-    # --- MONITORAGGIO ATTIVO POSIZIONI E CALCOLO P&L NETTO (CON FEE) ---
-    print("\n--- MONITORAGGIO POSIZIONI ATTIVE & P&L (NETTO FEE) ---")
+    total_pnl_usd = 0.0
+    
     for slot_key, slot in state.items():
         if slot['active'] and slot['symbol']:
             sym = slot['symbol']
@@ -182,29 +182,38 @@ def run_trading_bot():
             except Exception as e:
                 print(f"Impossibile aggiornare prezzo per {sym}: {e}")
 
-            # Calcolo P&L (se entry_price è salvato)
+            # Calcolo P&L
             if entry > 0:
                 if pos_type == "LONG":
                     pnl_gross = ((curr_price - entry) / entry) * 100
                 else: # SHORT
                     pnl_gross = ((entry - curr_price) / entry) * 100
                 
-                # Detrazione fee (0.1% ingresso + 0.1% uscita stimata = 0.2% totale)
-                pnl_net = pnl_gross - (EXCHANGE_FEE_RATE * 2 * 100)
+                pnl_net_pct = pnl_gross - (EXCHANGE_FEE_RATE * 2 * 100)
+                pnl_usd = SLOT_CAPITAL * (pnl_net_pct / 100)
             else:
-                pnl_gross = 0.0
-                pnl_net = 0.0
+                pnl_net_pct = 0.0
+                pnl_usd = 0.0
+
+            total_pnl_usd += pnl_usd
 
             # Aggiornamento dati nello stato
             slot['current_price'] = round(curr_price, 4)
-            slot['pnl_net_percent'] = round(pnl_net, 2)
-            
-            print(f"[{slot_key.upper()}] Asset: {sym} | Tipo: {pos_type} | Ingresso: {entry:.4f} | Attuale: {curr_price:.4f} | PnL Netto (fee incl.): {pnl_net:+.2f}%")
-        else:
-            print(f"[{slot_key.upper()}] Slot Libero")
-    print("-------------------------------------------------------\n")
+            slot['pnl_net_percent'] = round(pnl_net_pct, 2)
 
-    # Salva subito gli aggiornamenti di prezzo e PnL nel file JSON
+            # Stampa stile report dettagliato
+            print(f"⏳ OPERAZIONE ATTIVA SU [{slot_key.upper()}]: {sym} ({pos_type})")
+            print(f"   Capitale Puntato: {SLOT_CAPITAL:.2f} $")
+            print(f"   Entrata: {entry:.4f} $ | Attuale: {curr_price:.4f} $")
+            print(f"   💵 Guadagno/Perdita netta (già tolte le fee): {pnl_usd:+.2f} $ ({pnl_net_pct:+.2f}%)")
+            print("------------------------------------------------------------------")
+        else:
+            print(f"💤 [{slot_key.upper()}]: Slot Libero")
+            print("------------------------------------------------------------------")
+
+    print(f"💰 PROFITTO/PERDITA TOTALE PORTAFOGLIO: {total_pnl_usd:+.2f} $")
+    print("==================================================================")
+
     save_state(state)
 
     # Verifica slot liberi per eventuale apertura di nuove posizioni
@@ -238,11 +247,11 @@ def run_trading_bot():
             }
             save_state(state)
 
-            print(f"🚀 Nuova Apertura ({target_slot.upper()}) | Asset: {crypto} | Direzione: {signal} | Prezzo: {price:.2f} | Capitale Slot: {SLOT_CAPITAL:.1f}$")
+            print(f"🚀 Nuova Apertura ({target_slot.upper()}) | Asset: {crypto} | Direzione: {signal} | Prezzo: {price:.2f} $")
         else:
-            print("Nessun asset ha superato i filtri in questo ciclo.")
+            print("Nessun asset ha superato i filtri in questo ciclo. Monitoraggio in corso.")
     else:
-        print("Tutti i 3 slot sono occupati. Monitoraggio completato.")
+        print("Tutti i 3 slot sono occupati. Monitoraggio posizioni completato.")
 
 if __name__ == "__main__":
     run_trading_bot()
