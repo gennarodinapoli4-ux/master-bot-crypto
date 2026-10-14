@@ -52,21 +52,27 @@ def send_telegram_alert(message):
         print(f"Errore Telegram: {e}")
 
 # ==========================================
-# GESTIONE STATO SLOT (PERSISTENZA)
+# GESTIONE STATO SLOT (MEMORIA DI FERRO)
 # ==========================================
 def load_state():
+    # Se il file di stato esiste, lo legge e mantiene esattamente ciò che c'è dentro (memoria persistente)
     if os.path.exists(STATE_FILE):
         try:
             with open(STATE_FILE, "r") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    # Stato iniziale: Slot 1 mantiene intatto ETH-USD come concordato
-    return {
+                state = json.load(f)
+                if isinstance(state, dict) and "slot_1" in state:
+                    return state
+        except Exception as e:
+            print(f"Errore lettura stato esistente: {e}")
+            
+    # Crea lo stato iniziale SOLO se il file non esiste (la primissima volta in assoluto)
+    initial_state = {
         "slot_1": {"symbol": "ETH-USD", "type": "SHORT", "entry_price": 0.0, "max_price": 0.0, "active": True},
         "slot_2": {"symbol": None, "type": None, "entry_price": 0.0, "max_price": 0.0, "active": False},
         "slot_3": {"symbol": None, "type": None, "entry_price": 0.0, "max_price": 0.0, "active": False}
     }
+    save_state(initial_state)
+    return initial_state
 
 def save_state(state):
     try:
@@ -167,10 +173,10 @@ def analyze_market(symbol):
 # 3. ESECUZIONE PRINCIPALE (GESTIONE 3 SLOT)
 # ==========================================
 def run_trading_bot():
-    print(f"[{datetime.now()}] Avvio scansione v17.0 (Whitelist Istituzionale + 500$ + 3 Slot)...")
+    print(f"[{datetime.now()}] Avvio scansione v17.0 (Memoria Persistente + 500$ + 3 Slot)...")
     
     state = load_state()
-    print(f"Stato Slot attuale -> Slot 1 (ETH fisso): {state['slot_1']['active']} | Slot 2: {state['slot_2']['active']} | Slot 3: {state['slot_3']['active']}")
+    print(f"Stato Slot attuale -> Slot 1: {state['slot_1']['symbol']} ({state['slot_1']['active']}) | Slot 2: {state['slot_2']['symbol']} ({state['slot_2']['active']}) | Slot 3: {state['slot_3']['symbol']} ({state['slot_3']['active']})")
 
     free_slots = [key for key, slot in state.items() if not slot['active']]
 
@@ -179,6 +185,7 @@ def run_trading_bot():
         max_score = 0
 
         for crypto in CRYPTO_LIST:
+            # Evita di comprare un asset se è già attivo in un altro slot
             if any(slot['symbol'] == crypto for slot in state.values() if slot['active']):
                 continue
                 
@@ -200,13 +207,14 @@ def run_trading_bot():
             }
             save_state(state)
 
-            msg = f"🚀 Nuova Apertura (Whitelist & Slot: {target_slot.upper()}) | Asset: {crypto} | Direzione: {signal} | Prezzo: {price:.2f} | Capitale Slot: {SLOT_CAPITAL:.1f}$"
+            msg = f"🚀 Nuova Apertura ({target_slot.upper()}) | Asset: {crypto} | Direzione: {signal} | Prezzo: {price:.2f} | Capitale Slot: {SLOT_CAPITAL:.1f}$"
             print(msg)
             send_telegram_alert(msg)
         else:
-            print("Nessun asset ha superato i filtri istituzionali in questo ciclo.")
+            print("Nessun asset ha superato i filtri in questo ciclo.")
     else:
         print("Tutti i 3 slot sono occupati. Monitoraggio posizioni aperte in corso...")
 
 if __name__ == "__main__":
     run_trading_bot()
+    
