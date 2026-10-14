@@ -5,7 +5,7 @@
         "entry_price": 2478.01,
         "max_price": 2478.01,
         "active": true,
-        "current_price": 2430.46,
+        "current_price": 2430.3701,
         "pnl_net_percent": 1.72
     },
     "slot_2": {
@@ -14,8 +14,8 @@
         "entry_price": 0.5526000261306763,
         "max_price": 0.5526000261306763,
         "active": true,
-        "current_price": 0.5552,
-        "pnl_net_percent": -0.67
+        "current_price": 0.5525,
+        "pnl_net_percent": -0.18
     },
     "slot_3": {
         "symbol": "CRV-USD",
@@ -23,7 +23,7 @@
         "entry_price": 0.3278000056743622,
         "max_price": 0.3278000056743622,
         "active": true,
-        "current_price": 0.3264,
-        "pnl_net_percent": 0.23
+        "current_price": 0.3286,
+        "pnl_net_percent": -0.44
     }
 }
