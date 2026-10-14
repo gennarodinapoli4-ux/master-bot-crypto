@@ -10,17 +10,15 @@ import os
 warnings.filterwarnings('ignore')
 
 # =====================================================================
-# MASTER BOT v16.0 - REAL-WORLD EXCHANGE SIMULATOR
-# Include: Commissioni, Cambio EUR/USD, Trailing Stop, RSI, Time-Stop
+# MASTER BOT v16.1 - DYNAMIC PROFIT RUNNER (+15% Target + Live News)
 # =====================================================================
 
 STATE_FILE = "stato_portafoglio.json"
 HISTORY_FILE = "storico_operazioni.csv"
 CAPITALE_INIZIALE = 150.0
 
-# Parametri Reali Exchange (0.10% fee + 0.05% slippage = 0.15% a tratta -> 0.30% totale A/R)
-FEE_TOTALE_PERC = 0.003  
-MAX_ORE_OPERAZIONE = 48  # Chiude se bloccata da oltre 48 ore
+FEE_TOTALE_PERC = 0.003  # 0.30% totale A/R
+MAX_ORE_OPERAZIONE = 72  # Più tempo (72h) per permettere di raggiungere il +15%
 
 UNIVERSE_CRYPTO = [
     "BTC-USD", "ETH-USD", "BNB-USD", "SOL-USD", "XRP-USD", 
@@ -63,7 +61,7 @@ def get_eur_usd_rate():
             df_fx.columns = df_fx.columns.droplevel(1)
         return float(df_fx['Close'].iloc[-1])
     except Exception:
-        return 1.08  # Valore di paracadute se Yahoo ritarda sul Forex
+        return 1.08
 
 def calcola_rsi(series, period=14):
     delta = series.diff()
@@ -90,35 +88,41 @@ def get_market_sentiment():
     return sum(sentiments) / len(sentiments) if sentiments else 0.0
 
 eur_usd = get_eur_usd_rate()
+market_sentiment = get_market_sentiment()  # Legge SEMPRE le notizie, anche a trade aperto!
 diff_cap = state['capitale'] - CAPITALE_INIZIALE
 perc_cap = (diff_cap / CAPITALE_INIZIALE) * 100
 
-print(f"🚀 Avvio Master Bot v16.0 (Simulazione Reale) - {now_str}")
+print(f"🚀 Avvio Master Bot v16.1 (Dynamic Runner +15%) - {now_str}")
 print("==============================================================")
 print(f"💰 CAPITALE NETTO DISPONIBILE: {state['capitale']:.2f} € (Cambio EUR/USD: {eur_usd:.4f})")
 print(f"📈 Profitto/Perdita Totale: {diff_cap:+.2f} € ({perc_cap:+.2f}%)")
 print(f"🏆 Bilancio Trade: {state.get('vinte', 0)} Vinte | {state.get('perse', 0)} Perse | Fee pagate: {state.get('commissioni_pagate', 0.0):.2f} €")
+print(f"🌐 Sentiment Globale Notizie Attuale: {market_sentiment:+.3f}")
 print("==============================================================")
 
 # =====================================================================
-# FASE 1: GESTIONE POSIZIONE APERTA (Controllo Vendita / Trailing Stop)
+# FASE 1: GESTIONE POSIZIONE APERTA (Con Analisi News + Trailing al 15%)
 # =====================================================================
 if state["posizione_aperta"] is not None:
     pos = state["posizione_aperta"]
     ticker = pos["ticker"]
     coin_name = ticker.replace("-USD", "")
+    entry = pos["entry_price"]
     
-    # Calcolo ore trascorse dall'apertura
+    # Aggiorna automaticamente il Take Profit al 15% se era rimasto all'8% della v16.0
+    target_15 = entry * 1.15 if pos["tipo"] == "LONG" else entry * 0.85
+    if abs(pos["tp"] - target_15) > 1.0:
+        pos["tp"] = target_15
+    
     open_dt = datetime.datetime.strptime(pos["data_apertura"], "%Y-%m-%d %H:%M UTC").replace(tzinfo=datetime.timezone.utc)
     ore_aperte = (now_dt - open_dt).total_seconds() / 3600.0
     
     print(f"⏳ OPERAZIONE ATTIVA SU: {ticker} ({pos['tipo']}) da {ore_aperte:.1f} ore")
     print(f"   Capitale Puntato: {pos['capitale_investito']:.2f} € ({pos['dollari_investiti']:.2f} $)")
-    print(f"   Quantità in portafoglio: {pos['quantita']:.6f} {coin_name}")
-    print(f"   Entrata: {pos['entry_price']:.4f} $ | SL Attuale: {pos['sl']:.4f} $ | TP: {pos['tp']:.4f} $")
+    print(f"   Quantità in tasca: {pos['quantita']:.6f} {coin_name}")
+    print(f"   Entrata: {entry:.4f} $ | SL Attuale: {pos['sl']:.4f} $ | Super TP (+15%): {pos['tp']:.4f} $")
     
     try:
-        # Scarica dati a 15m per vedere i picchi esatti dell'ultima ora e a 1h per le medie
         df_15m = yf.download(ticker, period="1d", interval="15m", progress=False)
         df_1h = yf.download(ticker, period="30d", interval="1h", progress=False)
         if isinstance(df_15m.columns, pd.MultiIndex):
@@ -126,7 +130,6 @@ if state["posizione_aperta"] is not None:
         if isinstance(df_1h.columns, pd.MultiIndex):
             df_1h.columns = df_1h.columns.droplevel(1)
             
-        # Prende le ultime 4 candele da 15 minuti (l'ultima ora)
         ultime_candele = df_15m.tail(4)
         current_price = float(df_15m['Close'].iloc[-1])
         high_ora = float(ultime_candele['High'].max())
@@ -134,47 +137,77 @@ if state["posizione_aperta"] is not None:
         
         df_1h['SMA_20'] = df_1h['Close'].rolling(window=20).mean()
         df_1h['SMA_50'] = df_1h['Close'].rolling(window=50).mean()
+        df_1h['RSI'] = calcola_rsi(df_1h['Close'], 14)
         sma_20 = float(df_1h['SMA_20'].iloc[-1])
         sma_50 = float(df_1h['SMA_50'].iloc[-1])
+        rsi_attuale = float(df_1h['RSI'].iloc[-1])
         
-        print(f"📊 Prezzo Attuale: {current_price:.4f} $ (Min ultima ora: {low_ora:.4f} $, Max: {high_ora:.4f} $)")
+        var_attuale_perc = ((current_price - entry) / entry) if pos["tipo"] == "LONG" else ((entry - current_price) / entry)
+        max_raggiunto_perc = ((high_ora - entry) / entry) if pos["tipo"] == "LONG" else ((entry - low_ora) / entry)
+        
+        print(f"📊 Prezzo Attuale: {current_price:.4f} $ ({var_attuale_perc*100:+.2f}%) | RSI: {rsi_attuale:.1f}")
         
         chiusa = False
         esito = ""
         prezzo_uscita = current_price
         
-        # 1. Verifica Stop Loss o Take Profit
+        # 1. Verifica se nell'ultima ora ha toccato lo Stop Loss o il Take Profit (+15%)
         if pos["tipo"] == "LONG":
             if low_ora <= pos["sl"]:
                 chiusa = True
                 prezzo_uscita = pos["sl"]
-                esito = "PAREGGIO PROTETTO 🛡️" if pos.get("breakeven_attivo", False) else "STOP LOSS ❌"
+                esito = "PROFITTO PROTETTO (Trailing Stop) 🛡️" if pos["sl"] > entry else "STOP LOSS ❌"
             elif high_ora >= pos["tp"]:
                 chiusa = True
                 prezzo_uscita = pos["tp"]
-                esito = "TAKE PROFIT 🎯"
-            # Controllo Trailing Stop (se guadagna oltre il +4%, sposta SL in pareggio)
-            elif high_ora >= pos["entry_price"] * 1.04 and not pos.get("breakeven_attivo", False):
-                pos["sl"] = pos["entry_price"] * 1.004  # Pareggio + commissioni coperte
-                pos["breakeven_attivo"] = True
-                print(f"🔒 TRAILING STOP ATTIVATO! Il prezzo ha superato +4%. Stop Loss alzato a {pos['sl']:.4f} $ (Zero Rischio!)")
+                esito = "SUPER TAKE PROFIT (+15%) 🎯🚀"
+            else:
+                # SCALINO DINAMICO: Se supera +6%, insegue il prezzo a -2.5% di distanza!
+                if max_raggiunto_perc >= 0.06:
+                    nuovo_sl = high_ora * 0.975
+                    if nuovo_sl > pos["sl"]:
+                        pos["sl"] = nuovo_sl
+                        pos["breakeven_attivo"] = True
+                        print(f"🚀 CORSA DEL PROFITTO! Prezzo salito a +{max_raggiunto_perc*100:.1f}%. Alzo lo Stop Win a {pos['sl']:.4f} $!")
+                # Se supera +3.5%, mette lo Stop in pareggio (+0.4% per coprire le fee)
+                elif max_raggiunto_perc >= 0.035 and not pos.get("breakeven_attivo", False):
+                    pos["sl"] = entry * 1.004
+                    pos["breakeven_attivo"] = True
+                    print(f"🔒 STOP A PAREGGIO ATTIVATO! Superato +3.5%, Stop Loss spostato a {pos['sl']:.4f} $ (Zero Rischio!)")
         else:  # SHORT
             if high_ora >= pos["sl"]:
                 chiusa = True
                 prezzo_uscita = pos["sl"]
-                esito = "PAREGGIO PROTETTO 🛡️" if pos.get("breakeven_attivo", False) else "STOP LOSS ❌"
+                esito = "PROFITTO PROTETTO (Trailing Stop) 🛡️" if pos["sl"] < entry else "STOP LOSS ❌"
             elif low_ora <= pos["tp"]:
                 chiusa = True
                 prezzo_uscita = pos["tp"]
-                esito = "TAKE PROFIT 🎯"
-            elif low_ora <= pos["entry_price"] * 0.96 and not pos.get("breakeven_attivo", False):
-                pos["sl"] = pos["entry_price"] * 0.996
-                pos["breakeven_attivo"] = True
-                print(f"🔒 TRAILING STOP ATTIVATO! Il prezzo è sceso oltre -4%. Stop Loss abbassato a {pos['sl']:.4f} $ (Zero Rischio!)")
+                esito = "SUPER TAKE PROFIT (+15%) 🎯🚀"
+            else:
+                if max_raggiunto_perc >= 0.06:
+                    nuovo_sl = low_ora * 1.025
+                    if nuovo_sl < pos["sl"]:
+                        pos["sl"] = nuovo_sl
+                        pos["breakeven_attivo"] = True
+                        print(f"🚀 CORSA DEL PROFITTO! Prezzo sceso di +{max_raggiunto_perc*100:.1f}%. Abbasso lo Stop Win a {pos['sl']:.4f} $!")
+                elif max_raggiunto_perc >= 0.035 and not pos.get("breakeven_attivo", False):
+                    pos["sl"] = entry * 0.996
+                    pos["breakeven_attivo"] = True
+                    print(f"🔒 STOP A PAREGGIO ATTIVATO! Stop Loss spostato a {pos['sl']:.4f} $ (Zero Rischio!)")
 
-        # 2. Se non ha toccato SL/TP, controlla Inversione di Trend o Scadenza 48 ore
+        # 2. CONTROLLO INTELLIGENTE NOTIZIE + ANDAMENTO (Se l'operazione è ancora aperta)
         if not chiusa:
-            if pos["tipo"] == "LONG" and current_price < sma_20 < sma_50:
+            # A) Se siamo in guadagno (> +2%) ma escono NOTIZIE MOLTO NEGATIVE o RSI esplode (> 78), incassa subito!
+            if pos["tipo"] == "LONG" and var_attuale_perc >= 0.02 and (market_sentiment < -0.10 or rsi_attuale >= 78):
+                chiusa = True
+                prezzo_uscita = current_price
+                esito = "INCASSO INTELLIGENTE (News peggiorate / Ipercomprato) 🧠💵"
+            elif pos["tipo"] == "SHORT" and var_attuale_perc >= 0.02 and (market_sentiment > 0.15 or rsi_attuale <= 22):
+                chiusa = True
+                prezzo_uscita = current_price
+                esito = "INCASSO INTELLIGENTE (News cambiate / Ipervenduto) 🧠💵"
+            # B) Se il trend grafico su base oraria si inverte del tutto
+            elif pos["tipo"] == "LONG" and current_price < sma_20 < sma_50:
                 chiusa = True
                 prezzo_uscita = current_price
                 esito = "USCITA PER INVERSIONE TREND 🔄"
@@ -182,14 +215,15 @@ if state["posizione_aperta"] is not None:
                 chiusa = True
                 prezzo_uscita = current_price
                 esito = "USCITA PER INVERSIONE TREND 🔄"
+            # C) Scadenza massima 72 ore se resta impantanata
             elif ore_aperte >= MAX_ORE_OPERAZIONE:
                 chiusa = True
                 prezzo_uscita = current_price
-                esito = "CHIUSURA PER SCADENZA 48H ⏰"
+                esito = "CHIUSURA PER SCADENZA 72H ⏰"
 
-        # 3. Se l'operazione si è chiusa, calcola i soldi veri (con commissioni)
+        # 3. Esecuzione della Vendita se si è attivata una condizione di uscita
         if chiusa:
-            var_perc_lorda = ((prezzo_uscita - pos["entry_price"]) / pos["entry_price"]) if pos["tipo"] == "LONG" else ((pos["entry_price"] - prezzo_uscita) / pos["entry_price"])
+            var_perc_lorda = ((prezzo_uscita - entry) / entry) if pos["tipo"] == "LONG" else ((entry - prezzo_uscita) / entry)
             profitto_lordo_euro = pos["capitale_investito"] * var_perc_lorda
             commissioni_euro = pos["capitale_investito"] * FEE_TOTALE_PERC
             profitto_netto_euro = round(profitto_lordo_euro - commissioni_euro, 2)
@@ -215,7 +249,7 @@ if state["posizione_aperta"] is not None:
                 "Tipo": pos["tipo"],
                 "Euro_Investiti": pos["capitale_investito"],
                 "Quantita": round(pos["quantita"], 5),
-                "Prezzo_Entrata": round(pos["entry_price"], 4),
+                "Prezzo_Entrata": round(entry, 4),
                 "Prezzo_Uscita": round(prezzo_uscita, 4),
                 "Motivo_Chiusura": esito,
                 "Fee_Euro": round(commissioni_euro, 2),
@@ -225,9 +259,9 @@ if state["posizione_aperta"] is not None:
             state["posizione_aperta"] = None
             save_state(state)
         else:
-            var_perc = ((current_price - pos["entry_price"]) / pos["entry_price"]) if pos["tipo"] == "LONG" else ((pos["entry_price"] - current_price) / pos["entry_price"])
-            pnl_netto_stimato = (pos["capitale_investito"] * var_perc) - (pos["capitale_investito"] * FEE_TOTALE_PERC)
-            print(f"🛡️ Mantengo la posizione. Guadagno/Perdita netta attuale (già tolte le fee): {pnl_netto_stimato:+.2f} €")
+            pnl_netto_stimato = (pos["capitale_investito"] * var_attuale_perc) - (pos["capitale_investito"] * FEE_TOTALE_PERC)
+            print(f"🛡️ Trend e Notizie favorevoli: mantengo la posizione e lascio correre verso il +15%!")
+            print(f"💵 Guadagno/Perdita netta attuale (già tolte le fee): {pnl_netto_stimato:+.2f} €")
             save_state(state)
             
     except Exception as e:
@@ -237,8 +271,6 @@ if state["posizione_aperta"] is not None:
 # FASE 2: RICERCA NUOVA PUNTATA (Solo se il capitale è libero)
 # =====================================================================
 if state["posizione_aperta"] is None:
-    market_sentiment = get_market_sentiment()
-    print(f"🌐 Sentiment Globale News: {market_sentiment:.3f}")
     print("🔍 Scansione dei 21 asset (Trend + Volumi + RSI + News)...")
     
     best_crypto = None
@@ -264,7 +296,6 @@ if state["posizione_aperta"] is None:
             volume_medio = float(df['Volume'].rolling(window=24).mean().iloc[-1])
             volume_attuale = float(df['Volume'].iloc[-1])
             
-            # Regola Trend + Filtro RSI (evita di comprare sui massimi o vendere sui minimi)
             if current_price > sma_20 > sma_50 and 45 <= rsi <= 68:
                 trend_score = 1.0
                 direzione = "LONG"
@@ -291,23 +322,19 @@ if state["posizione_aperta"] is None:
         except Exception:
             continue
 
-    # Soglia di ingresso: punta solo se lo Score >= 1.80
     if best_crypto and best_score >= 1.8:
         capitale_investito = state["capitale"]
         dollari_investiti = round(capitale_investito * eur_usd, 2)
         price = selected_data['price']
-        
-        # Quantità reale acquistata (al netto della fee di ingresso dello 0.15%)
         quantita_acquistata = (dollari_investiti * (1 - (FEE_TOTALE_PERC / 2))) / price
         coin_name = best_crypto.replace("-USD", "")
-        rischio_euro = round(capitale_investito * 0.04, 2)
         
         if selected_data['trend'] == 'LONG':
-            sl = price * 0.96
-            tp = price * 1.08
+            sl = price * 0.96   # Stop Loss iniziale al -4%
+            tp = price * 1.15   # Super Take Profit al +15%
         else:
             sl = price * 1.04
-            tp = price * 0.92
+            tp = price * 0.85
             
         state["posizione_aperta"] = {
             "ticker": best_crypto,
@@ -328,8 +355,8 @@ if state["posizione_aperta"] is None:
         print(f"⭐ Asset Scelto: {best_crypto} | Direzione: {selected_data['trend']} | Score: {best_score:.2f} | RSI: {selected_data['rsi']:.1f}")
         print(f"💶 Capitale Impegnato: {capitale_investito:.2f} € (convertiti in {dollari_investiti:.2f} $)")
         print(f"🪙 Quantità Acquistata: {quantita_acquistata:.6f} {coin_name} (al prezzo di {price:.4f} $)")
-        print(f"🛡️ Stop Loss: {sl:.4f} $ (-4%) | 🎯 Take Profit: {tp:.4f} $ (+8%)")
-        print(f"🔒 Nota: A +4% di profitto lo Stop Loss verrà spostato automaticamente a pareggio!")
+        print(f"🛡️ Stop Loss: {sl:.4f} $ (-4%) | 🎯 Super Take Profit: {tp:.4f} $ (+15%)")
+        print(f"🔒 Gestione Dinamica: A +3.5% Stop a pareggio; oltre +6% inseguimento automatico del profitto e controllo News orario!")
     else:
         print(f"⏸️ NESSUNA PUNTATA: Miglior score rilevato ({best_score:.2f}) sotto la soglia 1.80 o RSI fuori zona sicura.")
         print(f"🏦 I tuoi {state['capitale']:.2f} € restano al sicuro in attesa della prossima ora.")
