@@ -1,16 +1,18 @@
 name: Master Bot Auto Run
 
 on:
-  schedule:
-    - cron: '0 * * * *'
   workflow_dispatch:
-
-permissions:
-  contents: write
+  schedule:
+    - cron: '0 * * * *'  # Gira automaticamente ogni ora
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+    
+    # Permessi necessari per permettere al bot di scrivere e salvare file nel repository
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,19 +22,15 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install yfinance pandas feedparser vaderSentiment
-
       - name: Run the bot
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python bot.py
 
-      - name: Salva Capitale e Storico nel Repository
+      - name: Salva Stato Portafoglio nel Repository
         run: |
-          git config --global user.name "Master Bot Auto"
-          git config --global user.email "bot@github.com"
-          git add stato_portafoglio.json || true
-          git add storico_operazioni.csv || true
-          git diff --staged --quiet || git commit -m "Aggiornamento automatico portafoglio e storico"
-          git push
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add portafoglio_stato.json
+          git diff --quiet && git diff --cached --quiet || (git commit -m "Aggiornamento automatico stato portafoglio [skip ci]" && git push)
