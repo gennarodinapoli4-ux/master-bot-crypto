@@ -5,8 +5,8 @@
         "entry_price": 2478.01,
         "max_price": 2357.02,
         "active": true,
-        "current_price": 2367.03,
-        "pnl_net_percent": 4.28,
+        "current_price": 2373.26,
+        "pnl_net_percent": 4.03,
         "invested_capital": 166.67,
         "opened_at": "2026-10-15 07:01:24"
     },
@@ -16,8 +16,8 @@
         "entry_price": 0.5526000261306763,
         "max_price": 0.5238,
         "active": true,
-        "current_price": 0.5257,
-        "pnl_net_percent": 4.67,
+        "current_price": 0.527,
+        "pnl_net_percent": 4.43,
         "invested_capital": 166.67,
         "opened_at": "2026-10-15 07:01:24"
     },
