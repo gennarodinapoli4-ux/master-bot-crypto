@@ -1,24 +1,24 @@
 {
     "slot_1": {
-        "symbol": "ETH-USD",
-        "type": "SHORT",
-        "entry_price": 2369.21,
-        "max_price": 2369.21,
-        "current_price": 2422.29,
-        "invested_capital": 168.65,
-        "opened_at": "2026-10-15 14:28:36",
-        "pnl_net_percent": -2.44,
-        "active": true
+        "symbol": null,
+        "type": null,
+        "entry_price": 0.0,
+        "max_price": 0.0,
+        "current_price": 0.0,
+        "invested_capital": 0.0,
+        "opened_at": null,
+        "pnl_net_percent": 0.0,
+        "active": false
     },
     "slot_2": {
         "symbol": "DOT-USD",
         "type": "SHORT",
         "entry_price": 1.0998,
         "max_price": 1.0998,
-        "current_price": 1.0998,
+        "current_price": 1.1105,
         "invested_capital": 164.02,
         "opened_at": "2026-10-15 15:29:57",
-        "pnl_net_percent": 0.0,
+        "pnl_net_percent": -1.17,
         "active": true
     },
     "slot_3": {
@@ -26,16 +26,16 @@
         "type": "SHORT",
         "entry_price": 81159.6562,
         "max_price": 80056.3984,
-        "current_price": 82252.3594,
+        "current_price": 82316.3516,
         "invested_capital": 164.42,
         "opened_at": "2026-10-15 08:27:21",
-        "pnl_net_percent": -1.55,
+        "pnl_net_percent": -1.63,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -7.95,
+        "total_realized_usd": -13.08,
         "wins": 2,
-        "losses": 2,
+        "losses": 3,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -72,6 +72,15 @@
                 "pnl_usd": -13.89,
                 "pnl_pct": -8.35,
                 "reason": "\ud83d\uded1 STOP LOSS (ALTCOIN -4.0%)"
+            },
+            {
+                "date": "2026-10-15 16:17",
+                "symbol": "ETH-USD",
+                "type": "SHORT",
+                "invested_usd": 168.65,
+                "pnl_usd": -5.13,
+                "pnl_pct": -3.04,
+                "reason": "\ud83d\uded1 STOP LOSS (BIG CAP -3.0%)"
             }
         ]
     }
