@@ -3,27 +3,39 @@
         "symbol": "ETH-USD",
         "type": "SHORT",
         "entry_price": 2478.01,
-        "max_price": 2478.01,
+        "max_price": 2357.02,
         "active": true,
-        "current_price": 2360.9399,
-        "pnl_net_percent": 4.52
+        "current_price": 2357.02,
+        "pnl_net_percent": 4.68,
+        "invested_capital": 166.67,
+        "opened_at": "2026-10-15 07:01:24"
     },
     "slot_2": {
         "symbol": "TIA-USD",
         "type": "SHORT",
         "entry_price": 0.5526000261306763,
-        "max_price": 0.5526000261306763,
+        "max_price": 0.5238,
         "active": true,
-        "current_price": 0.5251,
-        "pnl_net_percent": 4.78
+        "current_price": 0.5238,
+        "pnl_net_percent": 5.01,
+        "invested_capital": 166.67,
+        "opened_at": "2026-10-15 07:01:24"
     },
     "slot_3": {
         "symbol": "CRV-USD",
         "type": "SHORT",
         "entry_price": 0.3278000056743622,
-        "max_price": 0.3278000056743622,
+        "max_price": 0.3278,
         "active": true,
-        "current_price": 0.3356,
-        "pnl_net_percent": -2.58
+        "current_price": 0.339,
+        "pnl_net_percent": -3.62,
+        "invested_capital": 166.67,
+        "opened_at": "2026-10-15 07:01:24"
+    },
+    "stats": {
+        "total_realized_usd": 0.0,
+        "wins": 0,
+        "losses": 0,
+        "history": []
     }
 }
