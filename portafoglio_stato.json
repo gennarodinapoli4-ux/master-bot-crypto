@@ -3,11 +3,11 @@
         "symbol": "KAS-USD",
         "type": "SHORT",
         "entry_price": 0.0359,
-        "max_price": 0.0359,
-        "current_price": 0.0359,
+        "max_price": 0.0358,
+        "current_price": 0.0358,
         "invested_capital": 162.31,
         "opened_at": "2026-10-15 16:26:24",
-        "pnl_net_percent": 0.0,
+        "pnl_net_percent": 0.21,
         "active": true
     },
     "slot_2": {
@@ -15,10 +15,10 @@
         "type": "SHORT",
         "entry_price": 1.0998,
         "max_price": 1.0998,
-        "current_price": 1.1058,
+        "current_price": 1.1087,
         "invested_capital": 164.02,
         "opened_at": "2026-10-15 15:29:57",
-        "pnl_net_percent": -0.75,
+        "pnl_net_percent": -1.01,
         "active": true
     },
     "slot_3": {
@@ -26,10 +26,10 @@
         "type": "SHORT",
         "entry_price": 81159.6562,
         "max_price": 80056.3984,
-        "current_price": 82121.6328,
+        "current_price": 82161.4531,
         "invested_capital": 164.42,
         "opened_at": "2026-10-15 08:27:21",
-        "pnl_net_percent": -1.39,
+        "pnl_net_percent": -1.43,
         "active": true
     },
     "stats": {
