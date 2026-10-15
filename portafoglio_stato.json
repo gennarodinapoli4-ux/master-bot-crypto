@@ -1,24 +1,24 @@
 {
     "slot_1": {
-        "symbol": null,
-        "type": null,
-        "entry_price": 0.0,
-        "max_price": 0.0,
-        "current_price": 0.0,
-        "invested_capital": 0.0,
-        "opened_at": null,
+        "symbol": "KAS-USD",
+        "type": "SHORT",
+        "entry_price": 0.0359,
+        "max_price": 0.0359,
+        "current_price": 0.0359,
+        "invested_capital": 162.31,
+        "opened_at": "2026-10-15 16:26:24",
         "pnl_net_percent": 0.0,
-        "active": false
+        "active": true
     },
     "slot_2": {
         "symbol": "DOT-USD",
         "type": "SHORT",
         "entry_price": 1.0998,
         "max_price": 1.0998,
-        "current_price": 1.1105,
+        "current_price": 1.1058,
         "invested_capital": 164.02,
         "opened_at": "2026-10-15 15:29:57",
-        "pnl_net_percent": -1.17,
+        "pnl_net_percent": -0.75,
         "active": true
     },
     "slot_3": {
@@ -26,10 +26,10 @@
         "type": "SHORT",
         "entry_price": 81159.6562,
         "max_price": 80056.3984,
-        "current_price": 82316.3516,
+        "current_price": 82121.6328,
         "invested_capital": 164.42,
         "opened_at": "2026-10-15 08:27:21",
-        "pnl_net_percent": -1.63,
+        "pnl_net_percent": -1.39,
         "active": true
     },
     "stats": {
