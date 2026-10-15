@@ -36,7 +36,8 @@ EXCHANGE_FEE_RATE = 0.001  # 0.1% fee per operazione (0.2% totale round-trip)
 # ==========================================
 BIG_CAP_LIST = [
     "BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD", 
-    "ADA-USD", "AVAX-USD", "LINK-USD", "DOT-USD"
+    "ADA-USD", "AVAX-USD", "LINK-USD", "DOT-USD",
+    "LTC-USD", "BCH-USD", "TON-USD"
 ]
 
 # Parametri Big Cap (più stretti e realistici)
@@ -60,20 +61,22 @@ INSTITUTIONAL_WHITELIST = [
 ]
 
 # ==========================================
-# PANIERE TOP CRIPTO REALI E LIQUIDE
+# PANIERE TOP CRIPTO PULITO (Zero errori Yahoo)
 # ==========================================
 CRYPTO_LIST = [
     "BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD", "ADA-USD", "AVAX-USD", "LINK-USD", 
     "SUI-USD", "NEAR-USD", "RENDER-USD", "FET-USD", "PEPE-USD", "SHIB-USD", "WIF-USD",
-    "DOGE-USD", "DOT-USD", "UNI-USD", "ICP-USD", "APT-USD", "ARB-USD", "OP-USD",
-    "INJ-USD", "TIA-USD", "SEI-USD", "TAO-USD", "AAVE-USD", "ONDO-USD", "POL-USD",
-    "ALGO-USD", "FIL-USD", "ATOM-USD", "KAS-USD", "JUP-USD", "STX-USD", "CRV-USD"
+    "DOGE-USD", "DOT-USD", "UNI-USD", "ICP-USD", "ARB-USD", "OP-USD",
+    "INJ-USD", "TIA-USD", "SEI-USD", "AAVE-USD", "ONDO-USD",
+    "ALGO-USD", "FIL-USD", "ATOM-USD", "KAS-USD", "JUP-USD", "CRV-USD",
+    "LTC-USD", "BCH-USD", "HBAR-USD", "TON-USD"
 ]
 
 # ==========================================
 # GESTIONE STATO SLOT E LIBRO CONTABILE
 # ==========================================
 def load_state():
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if os.path.exists(STATE_FILE):
         try:
             with open(STATE_FILE, "r") as f:
@@ -81,18 +84,19 @@ def load_state():
                 if isinstance(state, dict) and "slot_1" in state:
                     if "stats" not in state:
                         state["stats"] = {"total_realized_usd": 0.0, "wins": 0, "losses": 0, "history": []}
-                    # Assicura che ogni slot attivo abbia il proprio capitale investito salvato
                     for k in ["slot_1", "slot_2", "slot_3"]:
                         if "invested_capital" not in state[k] or state[k]["invested_capital"] == 0.0:
                             state[k]["invested_capital"] = DEFAULT_SLOT_CAPITAL if state[k].get("active") else 0.0
+                        if "opened_at" not in state[k] or not state[k]["opened_at"]:
+                            state[k]["opened_at"] = now_str if state[k].get("active") else None
                     return state
         except Exception as e:
             print(f"Errore lettura stato esistente: {e}")
             
     initial_state = {
-        "slot_1": {"symbol": "ETH-USD", "type": "SHORT", "entry_price": 2478.01, "max_price": 2478.01, "invested_capital": DEFAULT_SLOT_CAPITAL, "active": True},
-        "slot_2": {"symbol": "TIA-USD", "type": "SHORT", "entry_price": 0.5526, "max_price": 0.5526, "invested_capital": DEFAULT_SLOT_CAPITAL, "active": True},
-        "slot_3": {"symbol": "CRV-USD", "type": "SHORT", "entry_price": 0.3278, "max_price": 0.3278, "invested_capital": DEFAULT_SLOT_CAPITAL, "active": True},
+        "slot_1": {"symbol": "ETH-USD", "type": "SHORT", "entry_price": 2478.01, "max_price": 2478.01, "invested_capital": DEFAULT_SLOT_CAPITAL, "opened_at": now_str, "active": True},
+        "slot_2": {"symbol": "TIA-USD", "type": "SHORT", "entry_price": 0.5526, "max_price": 0.5526, "invested_capital": DEFAULT_SLOT_CAPITAL, "opened_at": now_str, "active": True},
+        "slot_3": {"symbol": "CRV-USD", "type": "SHORT", "entry_price": 0.3278, "max_price": 0.3278, "invested_capital": DEFAULT_SLOT_CAPITAL, "opened_at": now_str, "active": True},
         "stats": {"total_realized_usd": 0.0, "wins": 0, "losses": 0, "history": []}
     }
     save_state(initial_state)
@@ -139,7 +143,7 @@ def analyze_market(symbol):
     try:
         df = yf.download(symbol, period="5d", interval="1h", progress=False)
         if df.empty or len(df) < 50:
-            return None, 0, 0
+            return None, 0.0, 0.0, 50.0
         
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.get_level_values(0)
@@ -147,11 +151,11 @@ def analyze_market(symbol):
         close = df['Close']
         volume = df['Volume']
 
-        sma20 = close.rolling(20).mean().iloc[-1]
-        sma50 = close.rolling(50).mean().iloc[-1]
+        sma20 = float(close.rolling(20).mean().iloc[-1])
+        sma50 = float(close.rolling(50).mean().iloc[-1])
         current_price = float(close.iloc[-1])
-        vol_mean = volume.rolling(20).mean().iloc[-1]
-        current_vol = volume.iloc[-1]
+        vol_mean = float(volume.rolling(20).mean().iloc[-1])
+        current_vol = float(volume.iloc[-1])
 
         # RSI 14
         delta = close.diff()
@@ -176,25 +180,25 @@ def analyze_market(symbol):
                 score = 2.5 + (abs(inst_score) * 0.5)
                 signal = "SHORT"
 
-        return signal, score, current_price
+        return signal, score, current_price, current_rsi
     except Exception:
-        return None, 0, 0
+        return None, 0.0, 0.0, 50.0
 
 # ==========================================
-# 3. ESECUZIONE PRINCIPALE (INTERESSE COMPOSTO + 3 SLOT)
+# 3. ESECUZIONE PRINCIPALE (FULL AUTONOMOUS)
 # ==========================================
 def run_trading_bot():
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 🚀 Avvio Master Bot v20.1 (Interesse Composto + Auto TP/SL)")
+    now_dt = datetime.now()
+    print(f"[{now_dt.strftime('%Y-%m-%d %H:%M:%S')}] 🚀 Avvio Master Bot v20.2 (Full Autonomous + Compounding + Trend Guard)")
     print("==================================================================")
     
     state = load_state()
     stats = state.get("stats", {"total_realized_usd": 0.0, "wins": 0, "losses": 0, "history": []})
     
-    # Calcolo Capitale Composto attuale
     compounded_total_capital = INITIAL_CAPITAL + stats['total_realized_usd']
     next_slot_capital = round(compounded_total_capital / NUM_SLOTS, 2)
 
-    print(f"💼 CAPITALE COMPOSTO TOTALE: {compounded_total_capital:.2f} $ (Iniziale: {INITIAL_CAPITAL:.0f}$ | Cassa: {stats['total_realized_usd']:+.2f}$)")
+    print(f"💼 CAPITALE COMPOSTO TOTALE: {compounded_total_capital:.2f} $ (Base: {INITIAL_CAPITAL:.0f}$ | Cassa: {stats['total_realized_usd']:+.2f}$)")
     print(f"🏆 Bilancio Trade Chiusi: {stats['wins']} Vinte | {stats['losses']} Perse | Prossima Puntata Slot: {next_slot_capital:.2f} $")
     print("==================================================================")
 
@@ -212,7 +216,19 @@ def run_trading_bot():
             if best_price == 0.0:
                 best_price = entry
 
-            # Imposta i paletti in base alla Market Cap (Big Cap vs Altcoin)
+            # Calcolo ore di apertura
+            opened_str = slot.get('opened_at')
+            hours_open = 0.0
+            if opened_str:
+                try:
+                    opened_dt = datetime.strptime(opened_str, "%Y-%m-%d %H:%M:%S")
+                    hours_open = round((now_dt - opened_dt).total_seconds() / 3600.0, 1)
+                except Exception:
+                    hours_open = 0.0
+            else:
+                slot['opened_at'] = now_dt.strftime("%Y-%m-%d %H:%M:%S")
+
+            # Imposta i paletti in base alla Market Cap
             is_big_cap = sym in BIG_CAP_LIST
             cat_label = "BIG CAP" if is_big_cap else "ALTCOIN"
             tp_target = BIG_CAP_TP if is_big_cap else ALT_TP
@@ -220,7 +236,7 @@ def run_trading_bot():
             trail_act = BIG_CAP_TRAIL_ACT if is_big_cap else ALT_TRAIL_ACT
             trail_dist = BIG_CAP_TRAIL_DIST if is_big_cap else ALT_TRAIL_DIST
 
-            # Recupera prezzo attuale
+            # Recupera prezzo attuale al minuto
             curr_price = entry
             try:
                 df_m = yf.download(sym, period="1d", interval="1m", progress=False)
@@ -230,6 +246,9 @@ def run_trading_bot():
                     curr_price = float(df_m['Close'].iloc[-1])
             except Exception as e:
                 print(f"Impossibile aggiornare prezzo per {sym}: {e}")
+
+            # Analisi tecnica e sentiment attuale per verificare inversioni di trend
+            live_signal, live_score, _, live_rsi = analyze_market(sym)
 
             # Aggiorna il picco massimo di profitto raggiunto (max_price)
             if pos_type == "LONG":
@@ -250,32 +269,38 @@ def run_trading_bot():
             fee_pct = EXCHANGE_FEE_RATE * 2 * 100  # 0.2%
             pnl_net_pct = pnl_gross - fee_pct
             max_pnl_net_pct = max_pnl_gross - fee_pct
-            
-            # Calcola il guadagno in dollari sul capitale effettivamente investito in questo slot
             pnl_usd = slot_cap * (pnl_net_pct / 100)
+            coin_qty = slot_cap / entry if entry > 0 else 0.0
+            coin_name = sym.replace("-USD", "")
 
             # --- CONTROLLO CONDIZIONI DI VENDITA AUTOMATICA ---
             close_position = False
             close_reason = ""
 
+            # 1. Take Profit Secco
             if pnl_net_pct >= tp_target:
                 close_position = True
                 close_reason = f"🎯 TAKE PROFIT ({cat_label} +{tp_target}%)"
+            # 2. Stop Loss Fisso
             elif pnl_net_pct <= sl_target:
                 close_position = True
                 close_reason = f"🛑 STOP LOSS ({cat_label} {sl_target}%)"
+            # 3. Trailing Stop Dinamico
             elif max_pnl_net_pct >= trail_act and (max_pnl_net_pct - pnl_net_pct) >= trail_dist:
                 close_position = True
                 close_reason = f"🛡️ TRAILING STOP (Picco era +{max_pnl_net_pct:.2f}%, incasso protetto!)"
+            # 4. Inversione violenta di Trend e Notizie (Scudo d'emergenza)
+            elif ((pos_type == "LONG" and live_signal == "SHORT") or (pos_type == "SHORT" and live_signal == "LONG")) and live_score >= 2.2:
+                close_position = True
+                close_reason = f"🔄 INVERSIONE TREND/NOTIZIE (Segnale opposto {live_signal} forte)"
 
             if close_position:
-                print(f"🔔 CHIUSURA AUTOMATICA [{slot_key.upper()}]: {sym} ({pos_type})")
+                print(f"🔔 CHIUSURA AUTOMATICA [{slot_key.upper()}]: {sym} ({pos_type}) dopo {hours_open} ore")
                 print(f"   Motivo: {close_reason}")
                 print(f"   Capitale Slot: {slot_cap:.2f} $ | Entrata: {entry:.4f} $ | Uscita: {curr_price:.4f} $")
                 print(f"   💰 Profitto/Perdita incassata (netto fee): {pnl_usd:+.2f} $ ({pnl_net_pct:+.2f}%)")
                 print("------------------------------------------------------------------")
 
-                # Aggiorna Libro Contabile e ricompone il capitale!
                 stats["total_realized_usd"] = round(stats["total_realized_usd"] + pnl_usd, 2)
                 if pnl_usd >= 0:
                     stats["wins"] += 1
@@ -283,7 +308,7 @@ def run_trading_bot():
                     stats["losses"] += 1
                 
                 stats["history"].append({
-                    "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    "date": now_dt.strftime("%Y-%m-%d %H:%M"),
                     "symbol": sym,
                     "type": pos_type,
                     "invested_usd": round(slot_cap, 2),
@@ -296,7 +321,7 @@ def run_trading_bot():
                 state[slot_key] = {
                     "symbol": None, "type": None, "entry_price": 0.0, 
                     "max_price": 0.0, "current_price": 0.0, "invested_capital": 0.0,
-                    "pnl_net_percent": 0.0, "active": False
+                    "opened_at": None, "pnl_net_percent": 0.0, "active": False
                 }
             else:
                 total_floating_usd += pnl_usd
@@ -307,11 +332,12 @@ def run_trading_bot():
 
                 trail_status = f"Attivo (Picco: +{max_pnl_net_pct:.2f}%)" if max_pnl_net_pct >= trail_act else f"Si attiva a +{trail_act}%"
 
-                print(f"⏳ OPERAZIONE ATTIVA SU [{slot_key.upper()}]: {sym} ({pos_type}) [{cat_label}]")
-                print(f"   Capitale Puntato: {slot_cap:.2f} $ | Entrata: {entry:.4f} $ | Attuale: {curr_price:.4f} $")
+                print(f"⏳ OPERAZIONE ATTIVA SU [{slot_key.upper()}]: {sym} ({pos_type}) [{cat_label}] da {hours_open} ore")
+                print(f"   Capitale Puntato: {slot_cap:.2f} $ | Quantità: {coin_qty:.5f} {coin_name}")
+                print(f"   Entrata: {entry:.4f} $ | Attuale: {curr_price:.4f} $ | RSI: {live_rsi:.1f}")
                 print(f"   Target TP (+{tp_target}%): {tp_price:.4f} $ | Stop Loss ({sl_target}%): {sl_price:.4f} $")
-                print(f"   🛡️ Trailing Stop: {trail_status}")
-                print(f"   💵 Guadagno/Perdita attuale (netto fee): {pnl_usd:+.2f} $ ({pnl_net_pct:+.2f}%)")
+                print(f"   🛡️ Trailing Stop: {trail_status} | Trend e Notizie regolari, mantengo!")
+                print(f"   💵 Guadagno/Perdita netta attuale (già tolte le fee): {pnl_usd:+.2f} $ ({pnl_net_pct:+.2f}%)")
                 print("------------------------------------------------------------------")
         else:
             print(f"💤 [{slot_key.upper()}]: Slot Libero (In cerca di opportunità...)")
@@ -323,45 +349,59 @@ def run_trading_bot():
     print(f"📊 P&L POSIZIONI APERTE: {total_floating_usd:+.2f} $ | 🏦 NUOVO CAPITALE COMPOSTO: {compounded_total_capital:.2f} $")
     print("==================================================================")
 
+    # --- STAMPA LIBRO CONTABILE (ULTIME 5 OPERAZIONI CHIUSE) ---
+    if stats["history"]:
+        print("📜 LIBRO CONTABILE (Ultime operazioni concluse):")
+        for trade in stats["history"][-5:]:
+            esito_icon = "✅" if trade["pnl_usd"] >= 0 else "❌"
+            print(f"   {esito_icon} [{trade['date']}] {trade['symbol']} ({trade['type']}) | Netto: {trade['pnl_usd']:+.2f}$ ({trade['pnl_pct']:+.2f}%) | {trade['reason']}")
+    else:
+        print("📜 LIBRO CONTABILE: Nessuna operazione ancora conclusa.")
+    print("==================================================================")
+
     save_state(state)
 
-    # --- RICERCA NUOVE OPPORTUNITÀ CON CAPITALE COMPOSTO AGGIORNATO ---
+    # --- RICERCA NUOVE OPPORTUNITÀ MULTI-SLOT ---
     free_slots = [k for k in slot_keys if not state[k]['active']]
 
     if free_slots:
-        # Calcola il nuovo capitale per slot includendo eventuali profitti appena incassati!
         new_slot_cap = round((INITIAL_CAPITAL + stats['total_realized_usd']) / NUM_SLOTS, 2)
-        print(f"🔍 Ricerca segnali per {len(free_slots)} slot liberi (Budget per slot: {new_slot_cap:.2f} $)...")
+        print(f"🔍 Ricerca segnali per {len(free_slots)} slot liberi (Budget composto per slot: {new_slot_cap:.2f} $)...")
         
-        best_opportunity = None
-        max_score = 0
+        candidates = []
+        active_symbols = [state[k]['symbol'] for k in slot_keys if state[k]['active']]
 
         for crypto in CRYPTO_LIST:
-            if any(state[k]['symbol'] == crypto for k in slot_keys if state[k]['active']):
+            if crypto in active_symbols:
                 continue
                 
-            signal, score, price = analyze_market(crypto)
-            if score > max_score:
-                max_score = score
-                best_opportunity = (crypto, signal, price)
+            signal, score, price, _ = analyze_market(crypto)
+            if score >= 1.8 and signal in ["LONG", "SHORT"]:
+                candidates.append((score, crypto, signal, price))
 
-        if best_opportunity and max_score >= 1.8:
-            crypto, signal, price = best_opportunity
-            target_slot = free_slots[0]
-            
-            state[target_slot] = {
-                "symbol": crypto,
-                "type": signal,
-                "entry_price": round(float(price), 4),
-                "max_price": round(float(price), 4),
-                "current_price": round(float(price), 4),
-                "invested_capital": new_slot_cap,
-                "pnl_net_percent": 0.0,
-                "active": True
-            }
+        # Ordina i candidati dal punteggio più alto al più basso
+        candidates.sort(key=lambda x: x[0], reverse=True)
+
+        opened_count = 0
+        for target_slot in free_slots:
+            if opened_count < len(candidates):
+                score, crypto, signal, price = candidates[opened_count]
+                state[target_slot] = {
+                    "symbol": crypto,
+                    "type": signal,
+                    "entry_price": round(float(price), 4),
+                    "max_price": round(float(price), 4),
+                    "current_price": round(float(price), 4),
+                    "invested_capital": new_slot_cap,
+                    "opened_at": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                    "pnl_net_percent": 0.0,
+                    "active": True
+                }
+                opened_count += 1
+                print(f"🚀 NUOVA APERTURA [{target_slot.upper()}] | Asset: {crypto} | Direzione: {signal} (Score: {score:.2f}) | Entrata: {price:.4f} $ | Puntata: {new_slot_cap:.2f} $")
+
+        if opened_count > 0:
             save_state(state)
-
-            print(f"🚀 NUOVA APERTURA [{target_slot.upper()}] | Asset: {crypto} | Direzione: {signal} | Entrata: {price:.4f} $ | Capitale Composto Puntato: {new_slot_cap:.2f} $")
         else:
             print("Nessun nuovo asset ha superato i filtri rigorosi in questo ciclo.")
     else:
