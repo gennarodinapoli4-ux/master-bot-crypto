@@ -5,8 +5,8 @@
         "entry_price": 2478.01,
         "max_price": 2357.02,
         "active": true,
-        "current_price": 2357.02,
-        "pnl_net_percent": 4.68,
+        "current_price": 2367.03,
+        "pnl_net_percent": 4.28,
         "invested_capital": 166.67,
         "opened_at": "2026-10-15 07:01:24"
     },
@@ -16,26 +16,36 @@
         "entry_price": 0.5526000261306763,
         "max_price": 0.5238,
         "active": true,
-        "current_price": 0.5238,
-        "pnl_net_percent": 5.01,
+        "current_price": 0.5257,
+        "pnl_net_percent": 4.67,
         "invested_capital": 166.67,
         "opened_at": "2026-10-15 07:01:24"
     },
     "slot_3": {
-        "symbol": "CRV-USD",
-        "type": "SHORT",
-        "entry_price": 0.3278000056743622,
-        "max_price": 0.3278,
-        "active": true,
-        "current_price": 0.339,
-        "pnl_net_percent": -3.62,
-        "invested_capital": 166.67,
-        "opened_at": "2026-10-15 07:01:24"
+        "symbol": null,
+        "type": null,
+        "entry_price": 0.0,
+        "max_price": 0.0,
+        "current_price": 0.0,
+        "invested_capital": 0.0,
+        "opened_at": null,
+        "pnl_net_percent": 0.0,
+        "active": false
     },
     "stats": {
-        "total_realized_usd": 0.0,
+        "total_realized_usd": -6.74,
         "wins": 0,
-        "losses": 0,
-        "history": []
+        "losses": 1,
+        "history": [
+            {
+                "date": "2026-10-15 07:36",
+                "symbol": "CRV-USD",
+                "type": "SHORT",
+                "invested_usd": 166.67,
+                "pnl_usd": -6.74,
+                "pnl_pct": -4.04,
+                "reason": "\ud83d\uded1 STOP LOSS (ALTCOIN -4.0%)"
+            }
+        ]
     }
 }
