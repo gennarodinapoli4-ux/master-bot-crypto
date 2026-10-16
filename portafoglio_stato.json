@@ -1,14 +1,14 @@
 {
     "slot_1": {
-        "symbol": null,
-        "type": null,
-        "entry_price": 0.0,
-        "max_price": 0.0,
-        "current_price": 0.0,
-        "invested_capital": 0.0,
-        "opened_at": null,
+        "symbol": "SEI-USD",
+        "type": "LONG",
+        "entry_price": 0.065,
+        "max_price": 0.065,
+        "current_price": 0.065,
+        "invested_capital": 156.16,
+        "opened_at": "2026-10-16 19:24:20",
         "pnl_net_percent": 0.0,
-        "active": false
+        "active": true
     },
     "slot_2": {
         "symbol": "TON-USD",
@@ -26,10 +26,10 @@
         "type": "LONG",
         "entry_price": 82078.8594,
         "max_price": 82813.9062,
-        "current_price": 81323.0625,
+        "current_price": 81381.0625,
         "invested_capital": 159.9,
         "opened_at": "2026-10-16 07:33:16",
-        "pnl_net_percent": -1.12,
+        "pnl_net_percent": -1.05,
         "active": true
     },
     "stats": {
