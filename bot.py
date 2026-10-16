@@ -14,7 +14,7 @@ import json
 import requests
 import pandas as pd
 import yfinance as yf
-from datetime import datetime
+from datetime import datetime, timedelta
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import nltk
 
@@ -189,7 +189,7 @@ def analyze_market(symbol):
 # ==========================================
 def run_trading_bot():
     now_dt = datetime.now()
-    print(f"[{now_dt.strftime('%Y-%m-%d %H:%M:%S')}] 🚀 Avvio Master Bot v20.2 (Full Autonomous + Compounding + Trend Guard)")
+    print(f"[{now_dt.strftime('%Y-%m-%d %H:%M:%S')}] 🚀 Avvio Master Bot v20.3 (Full Autonomous + 5m High/Low Real-Sim)")
     print("==================================================================")
     
     state = load_state()
@@ -204,6 +204,7 @@ def run_trading_bot():
 
     total_floating_usd = 0.0
     slot_keys = ["slot_1", "slot_2", "slot_3"]
+    fee_pct = EXCHANGE_FEE_RATE * 2 * 100  # 0.2%
     
     for slot_key in slot_keys:
         slot = state[slot_key]
@@ -219,6 +220,7 @@ def run_trading_bot():
             # Calcolo ore di apertura
             opened_str = slot.get('opened_at')
             hours_open = 0.0
+            opened_dt = None
             if opened_str:
                 try:
                     opened_dt = datetime.strptime(opened_str, "%Y-%m-%d %H:%M:%S")
@@ -236,68 +238,142 @@ def run_trading_bot():
             trail_act = BIG_CAP_TRAIL_ACT if is_big_cap else ALT_TRAIL_ACT
             trail_dist = BIG_CAP_TRAIL_DIST if is_big_cap else ALT_TRAIL_DIST
 
-            # Recupera prezzo attuale al minuto
+            # Calcolo prezzi soglia esatti (includendo compensazione fee 0.2% per netto reale)
+            if pos_type == "LONG":
+                sl_price = entry * (1 + ((sl_target + fee_pct) / 100))
+                tp_price = entry * (1 + ((tp_target + fee_pct) / 100))
+            else:
+                sl_price = entry * (1 - ((sl_target + fee_pct) / 100))
+                tp_price = entry * (1 - ((tp_target + fee_pct) / 100))
+
+            # --- SCANSIONE RETROATTIVA A 5 MINUTI (HIGH / LOW DELL'ULTIMA ORA) ---
             curr_price = entry
+            close_position = False
+            close_reason = ""
+            exit_price = entry
+
             try:
-                df_m = yf.download(sym, period="1d", interval="1m", progress=False)
-                if not df_m.empty:
-                    if isinstance(df_m.columns, pd.MultiIndex):
-                        df_m.columns = df_m.columns.get_level_values(0)
-                    curr_price = float(df_m['Close'].iloc[-1])
+                df_5m = yf.download(sym, period="1d", interval="5m", progress=False)
+                if not df_5m.empty:
+                    if isinstance(df_5m.columns, pd.MultiIndex):
+                        df_5m.columns = df_5m.columns.get_level_values(0)
+                    
+                    curr_price = float(df_5m['Close'].iloc[-1])
+                    
+                    # Prende le ultime 14 candele da 5m (~70 minuti) per coprire l'intera ora trascorsa
+                    recent_candles = df_5m.tail(14)
+
+                    for idx, row in recent_candles.iterrows():
+                        # Ignora candele precedenti all'apertura del trade (se aperto da meno di 1 ora)
+                        if opened_dt is not None:
+                            candle_time = idx.replace(tzinfo=None) if hasattr(idx, 'tzinfo') else idx
+                            if candle_time < (opened_dt - timedelta(minutes=5)):
+                                continue
+
+                        c_high = float(row['High'])
+                        c_low = float(row['Low'])
+
+                        if pos_type == "LONG":
+                            # 1. Controllo Stop Loss intra-candela (sul Minimo toccato)
+                            low_pnl_net = (((c_low - entry) / entry) * 100) - fee_pct
+                            if low_pnl_net <= sl_target:
+                                close_position = True
+                                exit_price = sl_price
+                                close_reason = f"🛑 STOP LOSS INTRA-ORA ({cat_label} {sl_target}% toccato sui 5m)"
+                                break
+
+                            # 2. Aggiorna Picco Massimo (sul Massimo toccato) e controlla Take Profit
+                            if c_high > best_price:
+                                best_price = c_high
+                            max_pnl_net = (((best_price - entry) / entry) * 100) - fee_pct
+
+                            if max_pnl_net >= tp_target:
+                                close_position = True
+                                exit_price = tp_price
+                                close_reason = f"🎯 TAKE PROFIT INTRA-ORA ({cat_label} +{tp_target}% toccato sui 5m)"
+                                break
+
+                            # 3. Controllo Trailing Stop intra-candela
+                            if max_pnl_net >= trail_act and (max_pnl_net - low_pnl_net) >= trail_dist:
+                                close_position = True
+                                trail_exit_net = max_pnl_net - trail_dist
+                                exit_price = entry * (1 + ((trail_exit_net + fee_pct) / 100))
+                                close_reason = f"🛡️ TRAILING STOP INTRA-ORA (Picco +{max_pnl_net:.2f}%, incasso protetto sui 5m!)"
+                                break
+
+                        else: # SHORT
+                            # 1. Controllo Stop Loss intra-candela (sul Massimo toccato)
+                            high_pnl_net = (((entry - c_high) / entry) * 100) - fee_pct
+                            if high_pnl_net <= sl_target:
+                                close_position = True
+                                exit_price = sl_price
+                                close_reason = f"🛑 STOP LOSS INTRA-ORA ({cat_label} {sl_target}% toccato sui 5m)"
+                                break
+
+                            # 2. Aggiorna Picco Minimo (sul Minimo toccato) e controlla Take Profit
+                            if c_low < best_price or best_price == 0.0:
+                                best_price = c_low
+                            max_pnl_net = (((entry - best_price) / entry) * 100) - fee_pct
+
+                            if max_pnl_net >= tp_target:
+                                close_position = True
+                                exit_price = tp_price
+                                close_reason = f"🎯 TAKE PROFIT INTRA-ORA ({cat_label} +{tp_target}% toccato sui 5m)"
+                                break
+
+                            # 3. Controllo Trailing Stop intra-candela
+                            if max_pnl_net >= trail_act and (max_pnl_net - high_pnl_net) >= trail_dist:
+                                close_position = True
+                                trail_exit_net = max_pnl_net - trail_dist
+                                exit_price = entry * (1 - ((trail_exit_net + fee_pct) / 100))
+                                close_reason = f"🛡️ TRAILING STOP INTRA-ORA (Picco +{max_pnl_net:.2f}%, incasso protetto sui 5m!)"
+                                break
+
             except Exception as e:
-                print(f"Impossibile aggiornare prezzo per {sym}: {e}")
+                print(f"Impossibile aggiornare candele 5m per {sym}: {e}")
 
             # Analisi tecnica e sentiment attuale per verificare inversioni di trend
             live_signal, live_score, _, live_rsi = analyze_market(sym)
 
-            # Aggiorna il picco massimo di profitto raggiunto (max_price)
-            if pos_type == "LONG":
-                if curr_price > best_price:
-                    best_price = curr_price
-                pnl_gross = ((curr_price - entry) / entry) * 100
-                max_pnl_gross = ((best_price - entry) / entry) * 100
-                sl_price = entry * (1 + (sl_target / 100))
-                tp_price = entry * (1 + (tp_target / 100))
-            else: # SHORT
-                if curr_price < best_price or best_price == 0.0:
-                    best_price = curr_price
-                pnl_gross = ((entry - curr_price) / entry) * 100
-                max_pnl_gross = ((entry - best_price) / entry) * 100
-                sl_price = entry * (1 - (sl_target / 100))
-                tp_price = entry * (1 - (tp_target / 100))
+            # Se i 5m hanno fatto scattare un ordine, usa il prezzo di esecuzione dello stop/target
+            effective_price = exit_price if close_position else curr_price
 
-            fee_pct = EXCHANGE_FEE_RATE * 2 * 100  # 0.2%
+            if pos_type == "LONG":
+                if not close_position and curr_price > best_price:
+                    best_price = curr_price
+                pnl_gross = ((effective_price - entry) / entry) * 100
+                max_pnl_gross = ((best_price - entry) / entry) * 100
+            else: # SHORT
+                if not close_position and (curr_price < best_price or best_price == 0.0):
+                    best_price = curr_price
+                pnl_gross = ((entry - effective_price) / entry) * 100
+                max_pnl_gross = ((entry - best_price) / entry) * 100
+
             pnl_net_pct = pnl_gross - fee_pct
             max_pnl_net_pct = max_pnl_gross - fee_pct
             pnl_usd = slot_cap * (pnl_net_pct / 100)
             coin_qty = slot_cap / entry if entry > 0 else 0.0
             coin_name = sym.replace("-USD", "")
 
-            # --- CONTROLLO CONDIZIONI DI VENDITA AUTOMATICA ---
-            close_position = False
-            close_reason = ""
-
-            # 1. Take Profit Secco
-            if pnl_net_pct >= tp_target:
-                close_position = True
-                close_reason = f"🎯 TAKE PROFIT ({cat_label} +{tp_target}%)"
-            # 2. Stop Loss Fisso
-            elif pnl_net_pct <= sl_target:
-                close_position = True
-                close_reason = f"🛑 STOP LOSS ({cat_label} {sl_target}%)"
-            # 3. Trailing Stop Dinamico
-            elif max_pnl_net_pct >= trail_act and (max_pnl_net_pct - pnl_net_pct) >= trail_dist:
-                close_position = True
-                close_reason = f"🛡️ TRAILING STOP (Picco era +{max_pnl_net_pct:.2f}%, incasso protetto!)"
-            # 4. Inversione violenta di Trend e Notizie (Scudo d'emergenza)
-            elif ((pos_type == "LONG" and live_signal == "SHORT") or (pos_type == "SHORT" and live_signal == "LONG")) and live_score >= 2.2:
-                close_position = True
-                close_reason = f"🔄 INVERSIONE TREND/NOTIZIE (Segnale opposto {live_signal} forte)"
+            # --- CONTROLLO FALLBACK E INVERSIONE TREND A FINE ORA ---
+            if not close_position:
+                if pnl_net_pct >= tp_target:
+                    close_position = True
+                    close_reason = f"🎯 TAKE PROFIT ({cat_label} +{tp_target}%)"
+                elif pnl_net_pct <= sl_target:
+                    close_position = True
+                    close_reason = f"🛑 STOP LOSS ({cat_label} {sl_target}%)"
+                elif max_pnl_net_pct >= trail_act and (max_pnl_net_pct - pnl_net_pct) >= trail_dist:
+                    close_position = True
+                    close_reason = f"🛡️ TRAILING STOP (Picco era +{max_pnl_net_pct:.2f}%, incasso protetto!)"
+                elif ((pos_type == "LONG" and live_signal == "SHORT") or (pos_type == "SHORT" and live_signal == "LONG")) and live_score >= 2.2:
+                    close_position = True
+                    close_reason = f"🔄 INVERSIONE TREND/NOTIZIE (Segnale opposto {live_signal} forte)"
 
             if close_position:
                 print(f"🔔 CHIUSURA AUTOMATICA [{slot_key.upper()}]: {sym} ({pos_type}) dopo {hours_open} ore")
                 print(f"   Motivo: {close_reason}")
-                print(f"   Capitale Slot: {slot_cap:.2f} $ | Entrata: {entry:.4f} $ | Uscita: {curr_price:.4f} $")
+                print(f"   Capitale Slot: {slot_cap:.2f} $ | Entrata: {entry:.4f} $ | Uscita: {effective_price:.4f} $")
                 print(f"   💰 Profitto/Perdita incassata (netto fee): {pnl_usd:+.2f} $ ({pnl_net_pct:+.2f}%)")
                 print("------------------------------------------------------------------")
 
@@ -335,78 +411,4 @@ def run_trading_bot():
                 print(f"⏳ OPERAZIONE ATTIVA SU [{slot_key.upper()}]: {sym} ({pos_type}) [{cat_label}] da {hours_open} ore")
                 print(f"   Capitale Puntato: {slot_cap:.2f} $ | Quantità: {coin_qty:.5f} {coin_name}")
                 print(f"   Entrata: {entry:.4f} $ | Attuale: {curr_price:.4f} $ | RSI: {live_rsi:.1f}")
-                print(f"   Target TP (+{tp_target}%): {tp_price:.4f} $ | Stop Loss ({sl_target}%): {sl_price:.4f} $")
-                print(f"   🛡️ Trailing Stop: {trail_status} | Trend e Notizie regolari, mantengo!")
-                print(f"   💵 Guadagno/Perdita netta attuale (già tolte le fee): {pnl_usd:+.2f} $ ({pnl_net_pct:+.2f}%)")
-                print("------------------------------------------------------------------")
-        else:
-            print(f"💤 [{slot_key.upper()}]: Slot Libero (In cerca di opportunità...)")
-            print("------------------------------------------------------------------")
-
-    state["stats"] = stats
-    compounded_total_capital = INITIAL_CAPITAL + stats['total_realized_usd']
-    
-    print(f"📊 P&L POSIZIONI APERTE: {total_floating_usd:+.2f} $ | 🏦 NUOVO CAPITALE COMPOSTO: {compounded_total_capital:.2f} $")
-    print("==================================================================")
-
-    # --- STAMPA LIBRO CONTABILE (ULTIME 5 OPERAZIONI CHIUSE) ---
-    if stats["history"]:
-        print("📜 LIBRO CONTABILE (Ultime operazioni concluse):")
-        for trade in stats["history"][-5:]:
-            esito_icon = "✅" if trade["pnl_usd"] >= 0 else "❌"
-            print(f"   {esito_icon} [{trade['date']}] {trade['symbol']} ({trade['type']}) | Netto: {trade['pnl_usd']:+.2f}$ ({trade['pnl_pct']:+.2f}%) | {trade['reason']}")
-    else:
-        print("📜 LIBRO CONTABILE: Nessuna operazione ancora conclusa.")
-    print("==================================================================")
-
-    save_state(state)
-
-    # --- RICERCA NUOVE OPPORTUNITÀ MULTI-SLOT ---
-    free_slots = [k for k in slot_keys if not state[k]['active']]
-
-    if free_slots:
-        new_slot_cap = round((INITIAL_CAPITAL + stats['total_realized_usd']) / NUM_SLOTS, 2)
-        print(f"🔍 Ricerca segnali per {len(free_slots)} slot liberi (Budget composto per slot: {new_slot_cap:.2f} $)...")
-        
-        candidates = []
-        active_symbols = [state[k]['symbol'] for k in slot_keys if state[k]['active']]
-
-        for crypto in CRYPTO_LIST:
-            if crypto in active_symbols:
-                continue
-                
-            signal, score, price, _ = analyze_market(crypto)
-            if score >= 1.8 and signal in ["LONG", "SHORT"]:
-                candidates.append((score, crypto, signal, price))
-
-        # Ordina i candidati dal punteggio più alto al più basso
-        candidates.sort(key=lambda x: x[0], reverse=True)
-
-        opened_count = 0
-        for target_slot in free_slots:
-            if opened_count < len(candidates):
-                score, crypto, signal, price = candidates[opened_count]
-                state[target_slot] = {
-                    "symbol": crypto,
-                    "type": signal,
-                    "entry_price": round(float(price), 4),
-                    "max_price": round(float(price), 4),
-                    "current_price": round(float(price), 4),
-                    "invested_capital": new_slot_cap,
-                    "opened_at": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
-                    "pnl_net_percent": 0.0,
-                    "active": True
-                }
-                opened_count += 1
-                print(f"🚀 NUOVA APERTURA [{target_slot.upper()}] | Asset: {crypto} | Direzione: {signal} (Score: {score:.2f}) | Entrata: {price:.4f} $ | Puntata: {new_slot_cap:.2f} $")
-
-        if opened_count > 0:
-            save_state(state)
-        else:
-            print("Nessun nuovo asset ha superato i filtri rigorosi in questo ciclo.")
-    else:
-        print("Tutti i 3 slot sono operativi. Monitoraggio e protezione attivi.")
-
-if __name__ == "__main__":
-    run_trading_bot()
-    
+                print(f"   Target TP (+{tp_target}%): {tp_price:.4f} $ | Stop Los
