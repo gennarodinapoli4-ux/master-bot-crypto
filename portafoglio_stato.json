@@ -4,10 +4,10 @@
         "type": "SHORT",
         "entry_price": 0.0359,
         "max_price": 0.0358,
-        "current_price": 0.0369,
+        "current_price": 0.0371,
         "invested_capital": 162.31,
         "opened_at": "2026-10-15 16:26:24",
-        "pnl_net_percent": -2.99,
+        "pnl_net_percent": -3.64,
         "active": true
     },
     "slot_2": {
@@ -23,19 +23,19 @@
     },
     "slot_3": {
         "symbol": "BTC-USD",
-        "type": "SHORT",
-        "entry_price": 81159.6562,
-        "max_price": 80056.3984,
-        "current_price": 81988.7031,
-        "invested_capital": 164.42,
-        "opened_at": "2026-10-15 08:27:21",
-        "pnl_net_percent": -1.22,
+        "type": "LONG",
+        "entry_price": 82078.8594,
+        "max_price": 82078.8594,
+        "current_price": 82078.8594,
+        "invested_capital": 159.9,
+        "opened_at": "2026-10-16 07:33:16",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -18.11,
+        "total_realized_usd": -20.3,
         "wins": 2,
-        "losses": 4,
+        "losses": 5,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -90,6 +90,15 @@
                 "pnl_usd": -5.03,
                 "pnl_pct": -3.06,
                 "reason": "\ud83d\uded1 STOP LOSS (BIG CAP -3.0%)"
+            },
+            {
+                "date": "2026-10-16 07:33",
+                "symbol": "BTC-USD",
+                "type": "SHORT",
+                "invested_usd": 164.42,
+                "pnl_usd": -2.19,
+                "pnl_pct": -1.33,
+                "reason": "\ud83d\udd04 INVERSIONE TREND/NOTIZIE (Segnale opposto LONG forte)"
             }
         ]
     }
