@@ -3,11 +3,11 @@
         "symbol": "LTC-USD",
         "type": "LONG",
         "entry_price": 61.087,
-        "max_price": 61.144,
-        "current_price": 60.966,
+        "max_price": 61.308,
+        "current_price": 61.227,
         "invested_capital": 157.74,
         "opened_at": "2026-10-16 08:52:06",
-        "pnl_net_percent": -0.4,
+        "pnl_net_percent": 0.03,
         "active": true
     },
     "slot_2": {
@@ -25,11 +25,11 @@
         "symbol": "BTC-USD",
         "type": "LONG",
         "entry_price": 82078.8594,
-        "max_price": 82292.0234,
-        "current_price": 81949.8984,
+        "max_price": 82754.1328,
+        "current_price": 82678.3828,
         "invested_capital": 159.9,
         "opened_at": "2026-10-16 07:33:16",
-        "pnl_net_percent": -0.36,
+        "pnl_net_percent": 0.53,
         "active": true
     },
     "stats": {
