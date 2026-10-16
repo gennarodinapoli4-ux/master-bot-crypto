@@ -411,4 +411,77 @@ def run_trading_bot():
                 print(f"⏳ OPERAZIONE ATTIVA SU [{slot_key.upper()}]: {sym} ({pos_type}) [{cat_label}] da {hours_open} ore")
                 print(f"   Capitale Puntato: {slot_cap:.2f} $ | Quantità: {coin_qty:.5f} {coin_name}")
                 print(f"   Entrata: {entry:.4f} $ | Attuale: {curr_price:.4f} $ | RSI: {live_rsi:.1f}")
-                print(f"   Target TP (+{tp_target}%): {tp_price:.4f} $ | Stop Los
+                print(f"   Target TP (+{tp_target}%): {tp_price:.4f} $ | Stop Loss ({sl_target}%): {sl_price:.4f} $")
+                print(f"   🛡️ Trailing Stop: {trail_status} | Scansione 5m High/Low OK, mantengo!")
+                print(f"   💵 Guadagno/Perdita netta attuale (già tolte le fee): {pnl_usd:+.2f} $ ({pnl_net_pct:+.2f}%)")
+                print("------------------------------------------------------------------")
+        else:
+            print(f"💤 [{slot_key.upper()}]: Slot Libero (In cerca di opportunità...)")
+            print("------------------------------------------------------------------")
+
+    state["stats"] = stats
+    compounded_total_capital = INITIAL_CAPITAL + stats['total_realized_usd']
+    
+    print(f"📊 P&L POSIZIONI APERTE: {total_floating_usd:+.2f} $ | 🏦 NUOVO CAPITALE COMPOSTO: {compounded_total_capital:.2f} $")
+    print("==================================================================")
+
+    # --- STAMPA LIBRO CONTABILE (ULTIME 5 OPERAZIONI CHIUSE) ---
+    if stats["history"]:
+        print("📜 LIBRO CONTABILE (Ultime operazioni concluse):")
+        for trade in stats["history"][-5:]:
+            esito_icon = "✅" if trade["pnl_usd"] >= 0 else "❌"
+            print(f"   {esito_icon} [{trade['date']}] {trade['symbol']} ({trade['type']}) | Netto: {trade['pnl_usd']:+.2f}$ ({trade['pnl_pct']:+.2f}%) | {trade['reason']}")
+    else:
+        print("📜 LIBRO CONTABILE: Nessuna operazione ancora conclusa.")
+    print("==================================================================")
+
+    save_state(state)
+
+    # --- RICERCA NUOVE OPPORTUNITÀ MULTI-SLOT ---
+    free_slots = [k for k in slot_keys if not state[k]['active']]
+
+    if free_slots:
+        new_slot_cap = round((INITIAL_CAPITAL + stats['total_realized_usd']) / NUM_SLOTS, 2)
+        print(f"🔍 Ricerca segnali per {len(free_slots)} slot liberi (Budget composto per slot: {new_slot_cap:.2f} $)...")
+        
+        candidates = []
+        active_symbols = [state[k]['symbol'] for k in slot_keys if state[k]['active']]
+
+        for crypto in CRYPTO_LIST:
+            if crypto in active_symbols:
+                continue
+                
+            signal, score, price, _ = analyze_market(crypto)
+            if score >= 1.8 and signal in ["LONG", "SHORT"]:
+                candidates.append((score, crypto, signal, price))
+
+        # Ordina i candidati dal punteggio più alto al più basso
+        candidates.sort(key=lambda x: x[0], reverse=True)
+
+        opened_count = 0
+        for target_slot in free_slots:
+            if opened_count < len(candidates):
+                score, crypto, signal, price = candidates[opened_count]
+                state[target_slot] = {
+                    "symbol": crypto,
+                    "type": signal,
+                    "entry_price": round(float(price), 4),
+                    "max_price": round(float(price), 4),
+                    "current_price": round(float(price), 4),
+                    "invested_capital": new_slot_cap,
+                    "opened_at": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                    "pnl_net_percent": 0.0,
+                    "active": True
+                }
+                opened_count += 1
+                print(f"🚀 NUOVA APERTURA [{target_slot.upper()}] | Asset: {crypto} | Direzione: {signal} (Score: {score:.2f}) | Entrata: {price:.4f} $ | Puntata: {new_slot_cap:.2f} $")
+
+        if opened_count > 0:
+            save_state(state)
+        else:
+            print("Nessun nuovo asset ha superato i filtri rigorosi in questo ciclo.")
+    else:
+        print("Tutti i 3 slot sono operativi. Monitoraggio e protezione attivi.")
+
+if __name__ == "__main__":
+    run_trading_bot()
