@@ -1,24 +1,24 @@
 {
     "slot_1": {
-        "symbol": "LTC-USD",
-        "type": "LONG",
-        "entry_price": 61.087,
-        "max_price": 61.414,
-        "current_price": 60.053,
-        "invested_capital": 157.74,
-        "opened_at": "2026-10-16 08:52:06",
-        "pnl_net_percent": -1.89,
-        "active": true
+        "symbol": null,
+        "type": null,
+        "entry_price": 0.0,
+        "max_price": 0.0,
+        "current_price": 0.0,
+        "invested_capital": 0.0,
+        "opened_at": null,
+        "pnl_net_percent": 0.0,
+        "active": false
     },
     "slot_2": {
         "symbol": "TON-USD",
         "type": "SHORT",
         "entry_price": 0.0038,
-        "max_price": 0.0038,
-        "current_price": 0.0038,
+        "max_price": 0.0037,
+        "current_price": 0.0037,
         "invested_capital": 160.63,
         "opened_at": "2026-10-15 22:24:00",
-        "pnl_net_percent": -0.79,
+        "pnl_net_percent": 1.4,
         "active": true
     },
     "slot_3": {
@@ -26,16 +26,16 @@
         "type": "LONG",
         "entry_price": 82078.8594,
         "max_price": 82813.9062,
-        "current_price": 81547.3594,
+        "current_price": 80796.1719,
         "invested_capital": 159.9,
         "opened_at": "2026-10-16 07:33:16",
-        "pnl_net_percent": -0.85,
+        "pnl_net_percent": -1.76,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -26.79,
+        "total_realized_usd": -31.52,
         "wins": 2,
-        "losses": 6,
+        "losses": 7,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -108,6 +108,15 @@
                 "pnl_usd": -6.49,
                 "pnl_pct": -4.0,
                 "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (ALTCOIN -4.0% toccato sui 5m)"
+            },
+            {
+                "date": "2026-10-16 17:22",
+                "symbol": "LTC-USD",
+                "type": "LONG",
+                "invested_usd": 157.74,
+                "pnl_usd": -4.73,
+                "pnl_pct": -3.0,
+                "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (BIG CAP -3.0% toccato sui 5m)"
             }
         ]
     }
