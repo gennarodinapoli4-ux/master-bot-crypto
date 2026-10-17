@@ -1,13 +1,13 @@
 {
     "slot_1": {
-        "symbol": "SEI-USD",
-        "type": "LONG",
-        "entry_price": 0.065,
-        "max_price": 0.0667,
-        "current_price": 0.0631,
-        "invested_capital": 156.16,
-        "opened_at": "2026-10-16 19:24:20",
-        "pnl_net_percent": -3.09,
+        "symbol": "ETH-USD",
+        "type": "SHORT",
+        "entry_price": 2421.8401,
+        "max_price": 2421.8401,
+        "current_price": 2421.8401,
+        "invested_capital": 153.53,
+        "opened_at": "2026-10-17 13:24:42",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "slot_2": {
@@ -26,16 +26,16 @@
         "type": "SHORT",
         "entry_price": 81401.8125,
         "max_price": 81353.8828,
-        "current_price": 81415.1484,
+        "current_price": 81391.9219,
         "invested_capital": 155.61,
         "opened_at": "2026-10-17 03:22:37",
-        "pnl_net_percent": -0.22,
+        "pnl_net_percent": -0.19,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -33.16,
+        "total_realized_usd": -39.41,
         "wins": 2,
-        "losses": 8,
+        "losses": 9,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -126,6 +126,15 @@
                 "pnl_usd": -1.64,
                 "pnl_pct": -1.02,
                 "reason": "\ud83d\udd04 INVERSIONE TREND/NOTIZIE (Segnale opposto SHORT forte)"
+            },
+            {
+                "date": "2026-10-17 13:24",
+                "symbol": "SEI-USD",
+                "type": "LONG",
+                "invested_usd": 156.16,
+                "pnl_usd": -6.25,
+                "pnl_pct": -4.0,
+                "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (ALTCOIN -4.0% toccato sui 5m)"
             }
         ]
     }
