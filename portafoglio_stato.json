@@ -4,10 +4,10 @@
         "type": "LONG",
         "entry_price": 0.065,
         "max_price": 0.0667,
-        "current_price": 0.0637,
+        "current_price": 0.0638,
         "invested_capital": 156.16,
         "opened_at": "2026-10-16 19:24:20",
-        "pnl_net_percent": -2.22,
+        "pnl_net_percent": -1.98,
         "active": true
     },
     "slot_2": {
@@ -23,19 +23,19 @@
     },
     "slot_3": {
         "symbol": "BTC-USD",
-        "type": "LONG",
-        "entry_price": 82078.8594,
-        "max_price": 82813.9062,
-        "current_price": 81416.9922,
-        "invested_capital": 159.9,
-        "opened_at": "2026-10-16 07:33:16",
-        "pnl_net_percent": -1.01,
+        "type": "SHORT",
+        "entry_price": 81401.8125,
+        "max_price": 81401.8125,
+        "current_price": 81401.8125,
+        "invested_capital": 155.61,
+        "opened_at": "2026-10-17 03:22:37",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -31.52,
+        "total_realized_usd": -33.16,
         "wins": 2,
-        "losses": 7,
+        "losses": 8,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -117,6 +117,15 @@
                 "pnl_usd": -4.73,
                 "pnl_pct": -3.0,
                 "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (BIG CAP -3.0% toccato sui 5m)"
+            },
+            {
+                "date": "2026-10-17 03:22",
+                "symbol": "BTC-USD",
+                "type": "LONG",
+                "invested_usd": 159.9,
+                "pnl_usd": -1.64,
+                "pnl_pct": -1.02,
+                "reason": "\ud83d\udd04 INVERSIONE TREND/NOTIZIE (Segnale opposto SHORT forte)"
             }
         ]
     }
