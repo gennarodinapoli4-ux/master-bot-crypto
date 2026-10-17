@@ -1,13 +1,13 @@
 {
     "slot_1": {
-        "symbol": "ETH-USD",
+        "symbol": "SOL-USD",
         "type": "SHORT",
-        "entry_price": 2421.8401,
-        "max_price": 2396.8701,
-        "current_price": 2418.6399,
-        "invested_capital": 153.53,
-        "opened_at": "2026-10-17 13:24:42",
-        "pnl_net_percent": -0.07,
+        "entry_price": 102.62,
+        "max_price": 102.62,
+        "current_price": 102.62,
+        "invested_capital": 154.33,
+        "opened_at": "2026-10-17 22:17:14",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "slot_2": {
@@ -25,16 +25,16 @@
         "symbol": "BTC-USD",
         "type": "SHORT",
         "entry_price": 81401.8125,
-        "max_price": 81075.8438,
-        "current_price": 81520.6562,
+        "max_price": 80737.3203,
+        "current_price": 81146.0391,
         "invested_capital": 155.61,
         "opened_at": "2026-10-17 03:22:37",
-        "pnl_net_percent": -0.35,
+        "pnl_net_percent": 0.11,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -39.41,
-        "wins": 2,
+        "total_realized_usd": -37.02,
+        "wins": 3,
         "losses": 9,
         "history": [
             {
@@ -135,6 +135,15 @@
                 "pnl_usd": -6.25,
                 "pnl_pct": -4.0,
                 "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (ALTCOIN -4.0% toccato sui 5m)"
+            },
+            {
+                "date": "2026-10-17 22:17",
+                "symbol": "ETH-USD",
+                "type": "SHORT",
+                "invested_usd": 153.53,
+                "pnl_usd": 2.39,
+                "pnl_pct": 1.55,
+                "reason": "\ud83d\udee1\ufe0f TRAILING STOP INTRA-ORA (Picco +2.55%, incasso protetto sui 5m!)"
             }
         ]
     }
