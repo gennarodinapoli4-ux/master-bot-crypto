@@ -4,10 +4,10 @@
         "type": "SHORT",
         "entry_price": 102.62,
         "max_price": 102.49,
-        "current_price": 104.04,
+        "current_price": 103.26,
         "invested_capital": 154.33,
         "opened_at": "2026-10-17 22:17:14",
-        "pnl_net_percent": -1.58,
+        "pnl_net_percent": -0.82,
         "active": true
     },
     "slot_2": {
@@ -23,19 +23,19 @@
     },
     "slot_3": {
         "symbol": "BTC-USD",
-        "type": "SHORT",
-        "entry_price": 81401.8125,
-        "max_price": 80720.0,
-        "current_price": 81924.7188,
-        "invested_capital": 155.61,
-        "opened_at": "2026-10-17 03:22:37",
-        "pnl_net_percent": -0.84,
+        "type": "LONG",
+        "entry_price": 81672.0625,
+        "max_price": 81672.0625,
+        "current_price": 81672.0625,
+        "invested_capital": 154.05,
+        "opened_at": "2026-10-18 13:24:34",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -37.02,
+        "total_realized_usd": -37.85,
         "wins": 3,
-        "losses": 9,
+        "losses": 10,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -144,6 +144,15 @@
                 "pnl_usd": 2.39,
                 "pnl_pct": 1.55,
                 "reason": "\ud83d\udee1\ufe0f TRAILING STOP INTRA-ORA (Picco +2.55%, incasso protetto sui 5m!)"
+            },
+            {
+                "date": "2026-10-18 13:24",
+                "symbol": "BTC-USD",
+                "type": "SHORT",
+                "invested_usd": 155.61,
+                "pnl_usd": -0.83,
+                "pnl_pct": -0.53,
+                "reason": "\ud83d\udd04 INVERSIONE TREND/NOTIZIE (Segnale opposto LONG forte)"
             }
         ]
     }
