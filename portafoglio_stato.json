@@ -26,10 +26,10 @@
         "type": "SHORT",
         "entry_price": 81401.8125,
         "max_price": 80720.0,
-        "current_price": 82058.7188,
+        "current_price": 81997.3438,
         "invested_capital": 155.61,
         "opened_at": "2026-10-17 03:22:37",
-        "pnl_net_percent": -1.01,
+        "pnl_net_percent": -0.93,
         "active": true
     },
     "stats": {
