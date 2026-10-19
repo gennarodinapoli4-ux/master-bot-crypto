@@ -1,14 +1,14 @@
 {
     "slot_1": {
-        "symbol": "SOL-USD",
-        "type": "SHORT",
-        "entry_price": 102.62,
-        "max_price": 100.33,
-        "current_price": 104.82,
-        "invested_capital": 154.33,
-        "opened_at": "2026-10-17 22:17:14",
-        "pnl_net_percent": -2.34,
-        "active": true
+        "symbol": null,
+        "type": null,
+        "entry_price": 0.0,
+        "max_price": 0.0,
+        "current_price": 0.0,
+        "invested_capital": 0.0,
+        "opened_at": null,
+        "pnl_net_percent": 0.0,
+        "active": false
     },
     "slot_2": {
         "symbol": "TON-USD",
@@ -18,24 +18,24 @@
         "current_price": 0.0037,
         "invested_capital": 160.63,
         "opened_at": "2026-10-15 22:24:00",
-        "pnl_net_percent": 1.91,
+        "pnl_net_percent": 1.98,
         "active": true
     },
     "slot_3": {
         "symbol": "BTC-USD",
         "type": "LONG",
         "entry_price": 81672.0625,
-        "max_price": 82517.9766,
-        "current_price": 82278.5938,
+        "max_price": 82707.0,
+        "current_price": 82470.9297,
         "invested_capital": 154.05,
         "opened_at": "2026-10-18 13:24:34",
-        "pnl_net_percent": 0.54,
+        "pnl_net_percent": 0.78,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -37.85,
+        "total_realized_usd": -42.48,
         "wins": 3,
-        "losses": 10,
+        "losses": 11,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -153,6 +153,15 @@
                 "pnl_usd": -0.83,
                 "pnl_pct": -0.53,
                 "reason": "\ud83d\udd04 INVERSIONE TREND/NOTIZIE (Segnale opposto LONG forte)"
+            },
+            {
+                "date": "2026-10-19 03:26",
+                "symbol": "SOL-USD",
+                "type": "SHORT",
+                "invested_usd": 154.33,
+                "pnl_usd": -4.63,
+                "pnl_pct": -3.0,
+                "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (BIG CAP -3.0% toccato sui 5m)"
             }
         ]
     }
