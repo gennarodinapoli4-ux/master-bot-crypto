@@ -1,13 +1,13 @@
 {
     "slot_1": {
-        "symbol": "OP-USD",
-        "type": "SHORT",
-        "entry_price": 0.1242,
-        "max_price": 0.1226,
-        "current_price": 0.1276,
-        "invested_capital": 152.51,
-        "opened_at": "2026-10-19 04:28:47",
-        "pnl_net_percent": -2.9,
+        "symbol": "ETH-USD",
+        "type": "LONG",
+        "entry_price": 2404.97,
+        "max_price": 2404.97,
+        "current_price": 2404.97,
+        "invested_capital": 150.47,
+        "opened_at": "2026-10-20 05:25:24",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "slot_2": {
@@ -26,16 +26,16 @@
         "type": "LONG",
         "entry_price": 81672.0625,
         "max_price": 83056.4922,
-        "current_price": 81988.7812,
+        "current_price": 81901.8203,
         "invested_capital": 154.05,
         "opened_at": "2026-10-18 13:24:34",
-        "pnl_net_percent": 0.19,
+        "pnl_net_percent": 0.08,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -42.48,
+        "total_realized_usd": -48.58,
         "wins": 3,
-        "losses": 11,
+        "losses": 12,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -162,6 +162,15 @@
                 "pnl_usd": -4.63,
                 "pnl_pct": -3.0,
                 "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (BIG CAP -3.0% toccato sui 5m)"
+            },
+            {
+                "date": "2026-10-20 05:25",
+                "symbol": "OP-USD",
+                "type": "SHORT",
+                "invested_usd": 152.51,
+                "pnl_usd": -6.1,
+                "pnl_pct": -4.0,
+                "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (ALTCOIN -4.0% toccato sui 5m)"
             }
         ]
     }
