@@ -4,10 +4,10 @@
         "type": "SHORT",
         "entry_price": 2393.3999,
         "max_price": 2374.3701,
-        "current_price": 2388.27,
+        "current_price": 2385.47,
         "invested_capital": 150.13,
         "opened_at": "2026-10-20 06:29:10",
-        "pnl_net_percent": 0.01,
+        "pnl_net_percent": 0.13,
         "active": true
     },
     "slot_2": {
@@ -25,11 +25,11 @@
         "symbol": "BTC-USD",
         "type": "SHORT",
         "entry_price": 81456.0781,
-        "max_price": 81208.75,
-        "current_price": 81443.6484,
+        "max_price": 81197.6406,
+        "current_price": 81283.8906,
         "invested_capital": 149.89,
         "opened_at": "2026-10-20 07:36:59",
-        "pnl_net_percent": -0.18,
+        "pnl_net_percent": 0.01,
         "active": true
     },
     "stats": {
