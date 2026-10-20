@@ -3,11 +3,11 @@
         "symbol": "ETH-USD",
         "type": "SHORT",
         "entry_price": 2393.3999,
-        "max_price": 2379.8,
-        "current_price": 2385.48,
+        "max_price": 2375.5701,
+        "current_price": 2381.8701,
         "invested_capital": 150.13,
         "opened_at": "2026-10-20 06:29:10",
-        "pnl_net_percent": 0.13,
+        "pnl_net_percent": 0.28,
         "active": true
     },
     "slot_2": {
@@ -26,10 +26,10 @@
         "type": "SHORT",
         "entry_price": 81456.0781,
         "max_price": 81266.9609,
-        "current_price": 81443.3203,
+        "current_price": 81330.4062,
         "invested_capital": 149.89,
         "opened_at": "2026-10-20 07:36:59",
-        "pnl_net_percent": -0.18,
+        "pnl_net_percent": -0.05,
         "active": true
     },
     "stats": {
