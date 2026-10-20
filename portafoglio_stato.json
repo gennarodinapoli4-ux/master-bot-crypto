@@ -1,12 +1,12 @@
 {
     "slot_1": {
         "symbol": "ETH-USD",
-        "type": "LONG",
-        "entry_price": 2404.97,
-        "max_price": 2404.97,
-        "current_price": 2404.97,
-        "invested_capital": 150.47,
-        "opened_at": "2026-10-20 05:25:24",
+        "type": "SHORT",
+        "entry_price": 2393.3999,
+        "max_price": 2393.3999,
+        "current_price": 2393.3999,
+        "invested_capital": 150.13,
+        "opened_at": "2026-10-20 06:29:10",
         "pnl_net_percent": 0.0,
         "active": true
     },
@@ -26,16 +26,16 @@
         "type": "LONG",
         "entry_price": 81672.0625,
         "max_price": 83056.4922,
-        "current_price": 81901.8203,
+        "current_price": 81654.3438,
         "invested_capital": 154.05,
         "opened_at": "2026-10-18 13:24:34",
-        "pnl_net_percent": 0.08,
+        "pnl_net_percent": -0.22,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -48.58,
+        "total_realized_usd": -49.6,
         "wins": 3,
-        "losses": 12,
+        "losses": 13,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -171,6 +171,15 @@
                 "pnl_usd": -6.1,
                 "pnl_pct": -4.0,
                 "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (ALTCOIN -4.0% toccato sui 5m)"
+            },
+            {
+                "date": "2026-10-20 06:29",
+                "symbol": "ETH-USD",
+                "type": "LONG",
+                "invested_usd": 150.47,
+                "pnl_usd": -1.02,
+                "pnl_pct": -0.68,
+                "reason": "\ud83d\udd04 INVERSIONE TREND/NOTIZIE (Segnale opposto SHORT forte)"
             }
         ]
     }
