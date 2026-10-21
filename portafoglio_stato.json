@@ -3,22 +3,22 @@
         "symbol": "FET-USD",
         "type": "LONG",
         "entry_price": 0.1989,
-        "max_price": 0.2022,
-        "current_price": 0.2021,
+        "max_price": 0.2023,
+        "current_price": 0.1982,
         "invested_capital": 148.39,
         "opened_at": "2026-10-20 14:27:49",
-        "pnl_net_percent": 1.42,
+        "pnl_net_percent": -0.54,
         "active": true
     },
     "slot_2": {
         "symbol": "ALGO-USD",
         "type": "LONG",
         "entry_price": 0.1142,
-        "max_price": 0.1163,
-        "current_price": 0.1162,
+        "max_price": 0.1167,
+        "current_price": 0.1148,
         "invested_capital": 149.75,
         "opened_at": "2026-10-21 08:30:06",
-        "pnl_net_percent": 1.58,
+        "pnl_net_percent": 0.34,
         "active": true
     },
     "slot_3": {
@@ -26,10 +26,10 @@
         "type": "LONG",
         "entry_price": 82651.4219,
         "max_price": 84850.9922,
-        "current_price": 84778.5781,
+        "current_price": 84352.4922,
         "invested_capital": 147.56,
         "opened_at": "2026-10-21 02:25:28",
-        "pnl_net_percent": 2.37,
+        "pnl_net_percent": 1.86,
         "active": true
     },
     "stats": {
