@@ -4,10 +4,10 @@
         "type": "LONG",
         "entry_price": 0.1989,
         "max_price": 0.2016,
-        "current_price": 0.1969,
+        "current_price": 0.1947,
         "invested_capital": 148.39,
         "opened_at": "2026-10-20 14:27:49",
-        "pnl_net_percent": -1.21,
+        "pnl_net_percent": -2.3,
         "active": true
     },
     "slot_2": {
@@ -15,21 +15,21 @@
         "type": "LONG",
         "entry_price": 0.1142,
         "max_price": 0.1142,
-        "current_price": 0.113,
+        "current_price": 0.1123,
         "invested_capital": 149.75,
         "opened_at": "2026-10-21 08:30:06",
-        "pnl_net_percent": -1.22,
+        "pnl_net_percent": -1.91,
         "active": true
     },
     "slot_3": {
         "symbol": "BTC-USD",
         "type": "LONG",
         "entry_price": 82651.4219,
-        "max_price": 83608.7266,
-        "current_price": 83399.0,
+        "max_price": 83786.1797,
+        "current_price": 83239.2031,
         "invested_capital": 147.56,
         "opened_at": "2026-10-21 02:25:28",
-        "pnl_net_percent": 0.7,
+        "pnl_net_percent": 0.51,
         "active": true
     },
     "stats": {
