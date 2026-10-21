@@ -25,11 +25,11 @@
         "symbol": "BTC-USD",
         "type": "LONG",
         "entry_price": 82651.4219,
-        "max_price": 82651.4219,
-        "current_price": 82651.4219,
+        "max_price": 82770.7578,
+        "current_price": 82671.7031,
         "invested_capital": 147.56,
         "opened_at": "2026-10-21 02:25:28",
-        "pnl_net_percent": 0.0,
+        "pnl_net_percent": -0.18,
         "active": true
     },
     "stats": {
