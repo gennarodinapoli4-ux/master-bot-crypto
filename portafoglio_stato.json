@@ -3,22 +3,22 @@
         "symbol": "TIA-USD",
         "type": "SHORT",
         "entry_price": 0.597,
-        "max_price": 0.5757,
-        "current_price": 0.579,
+        "max_price": 0.5713,
+        "current_price": 0.5752,
         "invested_capital": 147.77,
         "opened_at": "2026-10-22 02:25:36",
-        "pnl_net_percent": 2.82,
+        "pnl_net_percent": 3.45,
         "active": true
     },
     "slot_2": {
-        "symbol": "ALGO-USD",
-        "type": "LONG",
-        "entry_price": 0.1142,
-        "max_price": 0.1167,
-        "current_price": 0.1103,
-        "invested_capital": 149.75,
-        "opened_at": "2026-10-21 08:30:06",
-        "pnl_net_percent": -3.62,
+        "symbol": "INJ-USD",
+        "type": "SHORT",
+        "entry_price": 8.308,
+        "max_price": 8.308,
+        "current_price": 8.308,
+        "invested_capital": 145.77,
+        "opened_at": "2026-10-22 06:31:32",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "slot_3": {
@@ -26,16 +26,16 @@
         "type": "LONG",
         "entry_price": 82651.4219,
         "max_price": 84850.9922,
-        "current_price": 82833.9531,
+        "current_price": 82516.9219,
         "invested_capital": 147.56,
         "opened_at": "2026-10-21 02:25:28",
-        "pnl_net_percent": 0.02,
+        "pnl_net_percent": -0.36,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -56.7,
+        "total_realized_usd": -62.69,
         "wins": 4,
-        "losses": 17,
+        "losses": 18,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -223,6 +223,15 @@
                 "type": "LONG",
                 "invested_usd": 148.39,
                 "pnl_usd": -5.94,
+                "pnl_pct": -4.0,
+                "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (ALTCOIN -4.0% toccato sui 5m)"
+            },
+            {
+                "date": "2026-10-22 06:31",
+                "symbol": "ALGO-USD",
+                "type": "LONG",
+                "invested_usd": 149.75,
+                "pnl_usd": -5.99,
                 "pnl_pct": -4.0,
                 "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (ALTCOIN -4.0% toccato sui 5m)"
             }
