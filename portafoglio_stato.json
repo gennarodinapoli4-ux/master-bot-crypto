@@ -1,13 +1,13 @@
 {
     "slot_1": {
-        "symbol": "FET-USD",
-        "type": "LONG",
-        "entry_price": 0.1989,
-        "max_price": 0.2023,
-        "current_price": 0.1968,
-        "invested_capital": 148.39,
-        "opened_at": "2026-10-20 14:27:49",
-        "pnl_net_percent": -1.25,
+        "symbol": "TIA-USD",
+        "type": "SHORT",
+        "entry_price": 0.597,
+        "max_price": 0.597,
+        "current_price": 0.597,
+        "invested_capital": 147.77,
+        "opened_at": "2026-10-22 02:25:36",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "slot_2": {
@@ -15,10 +15,10 @@
         "type": "LONG",
         "entry_price": 0.1142,
         "max_price": 0.1167,
-        "current_price": 0.1137,
+        "current_price": 0.1109,
         "invested_capital": 149.75,
         "opened_at": "2026-10-21 08:30:06",
-        "pnl_net_percent": -0.6,
+        "pnl_net_percent": -3.11,
         "active": true
     },
     "slot_3": {
@@ -26,16 +26,16 @@
         "type": "LONG",
         "entry_price": 82651.4219,
         "max_price": 84850.9922,
-        "current_price": 84215.1562,
+        "current_price": 82886.6562,
         "invested_capital": 147.56,
         "opened_at": "2026-10-21 02:25:28",
-        "pnl_net_percent": 1.69,
+        "pnl_net_percent": 0.08,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -50.76,
+        "total_realized_usd": -56.7,
         "wins": 4,
-        "losses": 16,
+        "losses": 17,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -216,6 +216,15 @@
                 "pnl_usd": 6.56,
                 "pnl_pct": 4.09,
                 "reason": "\ud83d\udee1\ufe0f TRAILING STOP INTRA-ORA (Picco +5.09%, incasso protetto sui 5m!)"
+            },
+            {
+                "date": "2026-10-22 02:25",
+                "symbol": "FET-USD",
+                "type": "LONG",
+                "invested_usd": 148.39,
+                "pnl_usd": -5.94,
+                "pnl_pct": -4.0,
+                "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (ALTCOIN -4.0% toccato sui 5m)"
             }
         ]
     }
