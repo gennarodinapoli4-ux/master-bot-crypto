@@ -3,11 +3,11 @@
         "symbol": "TIA-USD",
         "type": "SHORT",
         "entry_price": 0.5791,
-        "max_price": 0.5592,
-        "current_price": 0.5622,
+        "max_price": 0.5578,
+        "current_price": 0.5656,
         "invested_capital": 147.24,
         "opened_at": "2026-10-22 13:39:34",
-        "pnl_net_percent": 2.72,
+        "pnl_net_percent": 2.13,
         "active": true
     },
     "slot_2": {
@@ -15,27 +15,27 @@
         "type": "SHORT",
         "entry_price": 4.9317,
         "max_price": 4.8206,
-        "current_price": 4.881,
+        "current_price": 4.9322,
         "invested_capital": 148.98,
         "opened_at": "2026-10-22 17:25:33",
-        "pnl_net_percent": 0.83,
+        "pnl_net_percent": -0.21,
         "active": true
     },
     "slot_3": {
         "symbol": "BTC-USD",
-        "type": "LONG",
-        "entry_price": 82651.4219,
-        "max_price": 84850.9922,
-        "current_price": 81249.8281,
-        "invested_capital": 147.56,
-        "opened_at": "2026-10-21 02:25:28",
-        "pnl_net_percent": -1.9,
+        "type": "SHORT",
+        "entry_price": 81456.5781,
+        "max_price": 81456.5781,
+        "current_price": 81456.5781,
+        "invested_capital": 148.17,
+        "opened_at": "2026-10-22 21:25:52",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -53.05,
+        "total_realized_usd": -55.48,
         "wins": 6,
-        "losses": 18,
+        "losses": 19,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -252,6 +252,15 @@
                 "pnl_usd": 5.22,
                 "pnl_pct": 3.58,
                 "reason": "\ud83d\udee1\ufe0f TRAILING STOP INTRA-ORA (Picco +5.08%, incasso protetto sui 5m!)"
+            },
+            {
+                "date": "2026-10-22 21:25",
+                "symbol": "BTC-USD",
+                "type": "LONG",
+                "invested_usd": 147.56,
+                "pnl_usd": -2.43,
+                "pnl_pct": -1.65,
+                "reason": "\ud83d\udd04 INVERSIONE TREND/NOTIZIE (Segnale opposto SHORT forte)"
             }
         ]
     }
