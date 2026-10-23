@@ -3,22 +3,22 @@
         "symbol": "KAS-USD",
         "type": "SHORT",
         "entry_price": 0.0372,
-        "max_price": 0.0366,
-        "current_price": 0.0367,
+        "max_price": 0.0365,
+        "current_price": 0.0365,
         "invested_capital": 149.45,
         "opened_at": "2026-10-23 04:26:33",
-        "pnl_net_percent": 1.16,
+        "pnl_net_percent": 1.6,
         "active": true
     },
     "slot_2": {
-        "symbol": "NEAR-USD",
+        "symbol": "ADA-USD",
         "type": "SHORT",
-        "entry_price": 4.9317,
-        "max_price": 4.7167,
-        "current_price": 4.7332,
-        "invested_capital": 148.98,
-        "opened_at": "2026-10-22 17:25:33",
-        "pnl_net_percent": 3.82,
+        "entry_price": 0.2141,
+        "max_price": 0.2141,
+        "current_price": 0.2141,
+        "invested_capital": 150.77,
+        "opened_at": "2026-10-23 21:24:22",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "slot_3": {
@@ -26,15 +26,15 @@
         "type": "SHORT",
         "entry_price": 81456.5781,
         "max_price": 80995.8984,
-        "current_price": 81236.8828,
+        "current_price": 81350.0,
         "invested_capital": 148.17,
         "opened_at": "2026-10-22 21:25:52",
-        "pnl_net_percent": 0.07,
+        "pnl_net_percent": -0.07,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -51.65,
-        "wins": 7,
+        "total_realized_usd": -47.69,
+        "wins": 8,
         "losses": 19,
         "history": [
             {
@@ -270,6 +270,15 @@
                 "pnl_usd": 3.83,
                 "pnl_pct": 2.6,
                 "reason": "\ud83d\udee1\ufe0f TRAILING STOP INTRA-ORA (Picco +4.10%, incasso protetto sui 5m!)"
+            },
+            {
+                "date": "2026-10-23 21:24",
+                "symbol": "NEAR-USD",
+                "type": "SHORT",
+                "invested_usd": 148.98,
+                "pnl_usd": 3.96,
+                "pnl_pct": 2.66,
+                "reason": "\ud83d\udee1\ufe0f TRAILING STOP INTRA-ORA (Picco +4.16%, incasso protetto sui 5m!)"
             }
         ]
     }
