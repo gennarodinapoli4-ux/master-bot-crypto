@@ -3,22 +3,22 @@
         "symbol": "KAS-USD",
         "type": "SHORT",
         "entry_price": 0.0372,
-        "max_price": 0.0365,
-        "current_price": 0.0365,
+        "max_price": 0.0364,
+        "current_price": 0.0366,
         "invested_capital": 149.45,
         "opened_at": "2026-10-23 04:26:33",
-        "pnl_net_percent": 1.6,
+        "pnl_net_percent": 1.42,
         "active": true
     },
     "slot_2": {
         "symbol": "ADA-USD",
         "type": "SHORT",
         "entry_price": 0.2141,
-        "max_price": 0.2141,
-        "current_price": 0.2141,
+        "max_price": 0.2132,
+        "current_price": 0.2132,
         "invested_capital": 150.77,
         "opened_at": "2026-10-23 21:24:22",
-        "pnl_net_percent": 0.0,
+        "pnl_net_percent": 0.22,
         "active": true
     },
     "slot_3": {
@@ -26,10 +26,10 @@
         "type": "SHORT",
         "entry_price": 81456.5781,
         "max_price": 80995.8984,
-        "current_price": 81350.0,
+        "current_price": 81218.3438,
         "invested_capital": 148.17,
         "opened_at": "2026-10-22 21:25:52",
-        "pnl_net_percent": -0.07,
+        "pnl_net_percent": 0.09,
         "active": true
     },
     "stats": {
