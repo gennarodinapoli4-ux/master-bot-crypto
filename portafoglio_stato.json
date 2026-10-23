@@ -3,11 +3,11 @@
         "symbol": "TIA-USD",
         "type": "SHORT",
         "entry_price": 0.5791,
-        "max_price": 0.5556,
-        "current_price": 0.5583,
+        "max_price": 0.5542,
+        "current_price": 0.5564,
         "invested_capital": 147.24,
         "opened_at": "2026-10-22 13:39:34",
-        "pnl_net_percent": 3.39,
+        "pnl_net_percent": 3.72,
         "active": true
     },
     "slot_2": {
@@ -15,10 +15,10 @@
         "type": "SHORT",
         "entry_price": 4.9317,
         "max_price": 4.8206,
-        "current_price": 4.8856,
+        "current_price": 4.9182,
         "invested_capital": 148.98,
         "opened_at": "2026-10-22 17:25:33",
-        "pnl_net_percent": 0.73,
+        "pnl_net_percent": 0.07,
         "active": true
     },
     "slot_3": {
@@ -26,10 +26,10 @@
         "type": "SHORT",
         "entry_price": 81456.5781,
         "max_price": 81012.3438,
-        "current_price": 81163.7812,
+        "current_price": 81281.6094,
         "invested_capital": 148.17,
         "opened_at": "2026-10-22 21:25:52",
-        "pnl_net_percent": 0.16,
+        "pnl_net_percent": 0.01,
         "active": true
     },
     "stats": {
