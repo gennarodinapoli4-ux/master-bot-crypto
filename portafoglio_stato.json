@@ -3,11 +3,11 @@
         "symbol": "XRP-USD",
         "type": "SHORT",
         "entry_price": 1.2739,
-        "max_price": 1.256,
-        "current_price": 1.2598,
+        "max_price": 1.2536,
+        "current_price": 1.2668,
         "invested_capital": 154.14,
         "opened_at": "2026-10-24 14:20:48",
-        "pnl_net_percent": 0.91,
+        "pnl_net_percent": 0.36,
         "active": true
     },
     "slot_2": {
@@ -25,11 +25,11 @@
         "symbol": "BTC-USD",
         "type": "SHORT",
         "entry_price": 81456.5781,
-        "max_price": 79165.2266,
-        "current_price": 79237.6172,
+        "max_price": 79145.2891,
+        "current_price": 79561.3672,
         "invested_capital": 148.17,
         "opened_at": "2026-10-22 21:25:52",
-        "pnl_net_percent": 2.52,
+        "pnl_net_percent": 2.13,
         "active": true
     },
     "stats": {
