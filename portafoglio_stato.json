@@ -4,37 +4,37 @@
         "type": "SHORT",
         "entry_price": 1.2739,
         "max_price": 1.2536,
-        "current_price": 1.2668,
+        "current_price": 1.2732,
         "invested_capital": 154.14,
         "opened_at": "2026-10-24 14:20:48",
-        "pnl_net_percent": 0.36,
+        "pnl_net_percent": -0.15,
         "active": true
     },
     "slot_2": {
-        "symbol": null,
-        "type": null,
-        "entry_price": 0.0,
-        "max_price": 0.0,
-        "current_price": 0.0,
-        "invested_capital": 0.0,
-        "opened_at": null,
-        "pnl_net_percent": 0.0,
-        "active": false
-    },
-    "slot_3": {
         "symbol": "BTC-USD",
         "type": "SHORT",
-        "entry_price": 81456.5781,
-        "max_price": 79145.2891,
-        "current_price": 79561.3672,
-        "invested_capital": 148.17,
-        "opened_at": "2026-10-22 21:25:52",
-        "pnl_net_percent": 2.13,
+        "entry_price": 80111.3281,
+        "max_price": 80111.3281,
+        "current_price": 80111.3281,
+        "invested_capital": 156.34,
+        "opened_at": "2026-10-24 17:20:24",
+        "pnl_net_percent": 0.0,
+        "active": true
+    },
+    "slot_3": {
+        "symbol": "ATOM-USD",
+        "type": "SHORT",
+        "entry_price": 1.6389,
+        "max_price": 1.6389,
+        "current_price": 1.6389,
+        "invested_capital": 156.34,
+        "opened_at": "2026-10-24 17:20:24",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -33.41,
-        "wins": 12,
+        "total_realized_usd": -30.98,
+        "wins": 13,
         "losses": 19,
         "history": [
             {
@@ -315,6 +315,15 @@
                 "pnl_usd": 4.17,
                 "pnl_pct": 2.74,
                 "reason": "\ud83d\udee1\ufe0f TRAILING STOP INTRA-ORA (Picco +3.74%, incasso protetto sui 5m!)"
+            },
+            {
+                "date": "2026-10-24 17:20",
+                "symbol": "BTC-USD",
+                "type": "SHORT",
+                "invested_usd": 148.17,
+                "pnl_usd": 2.43,
+                "pnl_pct": 1.64,
+                "reason": "\ud83d\udee1\ufe0f TRAILING STOP INTRA-ORA (Picco +2.64%, incasso protetto sui 5m!)"
             }
         ]
     }
