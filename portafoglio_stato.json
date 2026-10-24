@@ -4,10 +4,10 @@
         "type": "SHORT",
         "entry_price": 1.2739,
         "max_price": 1.2536,
-        "current_price": 1.2913,
+        "current_price": 1.2905,
         "invested_capital": 154.14,
         "opened_at": "2026-10-24 14:20:48",
-        "pnl_net_percent": -1.57,
+        "pnl_net_percent": -1.5,
         "active": true
     },
     "slot_2": {
@@ -15,21 +15,21 @@
         "type": "SHORT",
         "entry_price": 80111.3281,
         "max_price": 80012.0312,
-        "current_price": 80467.4922,
+        "current_price": 80298.3672,
         "invested_capital": 156.34,
         "opened_at": "2026-10-24 17:20:24",
-        "pnl_net_percent": -0.64,
+        "pnl_net_percent": -0.43,
         "active": true
     },
     "slot_3": {
         "symbol": "ATOM-USD",
         "type": "SHORT",
         "entry_price": 1.6389,
-        "max_price": 1.6255,
-        "current_price": 1.6395,
+        "max_price": 1.6223,
+        "current_price": 1.6303,
         "invested_capital": 156.34,
         "opened_at": "2026-10-24 17:20:24",
-        "pnl_net_percent": -0.24,
+        "pnl_net_percent": 0.32,
         "active": true
     },
     "stats": {
