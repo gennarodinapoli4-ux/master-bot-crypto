@@ -1,24 +1,24 @@
 {
     "slot_1": {
-        "symbol": "KAS-USD",
+        "symbol": "ADA-USD",
         "type": "SHORT",
-        "entry_price": 0.0372,
-        "max_price": 0.0356,
-        "current_price": 0.0356,
-        "invested_capital": 149.45,
-        "opened_at": "2026-10-23 04:26:33",
-        "pnl_net_percent": 4.16,
+        "entry_price": 0.2095,
+        "max_price": 0.2095,
+        "current_price": 0.2095,
+        "invested_capital": 153.18,
+        "opened_at": "2026-10-24 00:33:20",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "slot_2": {
         "symbol": "ETH-USD",
         "type": "SHORT",
         "entry_price": 2374.5601,
-        "max_price": 2374.5601,
-        "current_price": 2374.5601,
+        "max_price": 2369.6201,
+        "current_price": 2370.96,
         "invested_capital": 151.88,
         "opened_at": "2026-10-23 23:20:49",
-        "pnl_net_percent": 0.0,
+        "pnl_net_percent": -0.05,
         "active": true
     },
     "slot_3": {
@@ -26,15 +26,15 @@
         "type": "SHORT",
         "entry_price": 81456.5781,
         "max_price": 80409.0,
-        "current_price": 80826.1562,
+        "current_price": 80633.7109,
         "invested_capital": 148.17,
         "opened_at": "2026-10-22 21:25:52",
-        "pnl_net_percent": 0.57,
+        "pnl_net_percent": 0.81,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -44.36,
-        "wins": 9,
+        "total_realized_usd": -40.47,
+        "wins": 10,
         "losses": 19,
         "history": [
             {
@@ -288,6 +288,15 @@
                 "pnl_usd": 3.33,
                 "pnl_pct": 2.21,
                 "reason": "\ud83d\udee1\ufe0f TRAILING STOP INTRA-ORA (Picco +3.21%, incasso protetto sui 5m!)"
+            },
+            {
+                "date": "2026-10-24 00:33",
+                "symbol": "KAS-USD",
+                "type": "SHORT",
+                "invested_usd": 149.45,
+                "pnl_usd": 3.89,
+                "pnl_pct": 2.6,
+                "reason": "\ud83d\udee1\ufe0f TRAILING STOP INTRA-ORA (Picco +4.10%, incasso protetto sui 5m!)"
             }
         ]
     }
