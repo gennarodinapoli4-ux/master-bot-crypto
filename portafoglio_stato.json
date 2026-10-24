@@ -3,22 +3,22 @@
         "symbol": "ADA-USD",
         "type": "SHORT",
         "entry_price": 0.2095,
-        "max_price": 0.2076,
-        "current_price": 0.2081,
+        "max_price": 0.2068,
+        "current_price": 0.2069,
         "invested_capital": 153.18,
         "opened_at": "2026-10-24 00:33:20",
-        "pnl_net_percent": 0.44,
+        "pnl_net_percent": 1.05,
         "active": true
     },
     "slot_2": {
         "symbol": "ETH-USD",
         "type": "SHORT",
         "entry_price": 2374.5601,
-        "max_price": 2366.8,
-        "current_price": 2370.4099,
+        "max_price": 2358.78,
+        "current_price": 2359.9299,
         "invested_capital": 151.88,
         "opened_at": "2026-10-23 23:20:49",
-        "pnl_net_percent": -0.03,
+        "pnl_net_percent": 0.42,
         "active": true
     },
     "slot_3": {
@@ -26,10 +26,10 @@
         "type": "SHORT",
         "entry_price": 81456.5781,
         "max_price": 80409.0,
-        "current_price": 80664.4688,
+        "current_price": 80485.2031,
         "invested_capital": 148.17,
         "opened_at": "2026-10-22 21:25:52",
-        "pnl_net_percent": 0.77,
+        "pnl_net_percent": 0.99,
         "active": true
     },
     "stats": {
