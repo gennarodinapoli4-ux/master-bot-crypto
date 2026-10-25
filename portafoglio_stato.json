@@ -1,24 +1,24 @@
 {
     "slot_1": {
-        "symbol": "XRP-USD",
-        "type": "SHORT",
-        "entry_price": 1.2739,
-        "max_price": 1.2536,
-        "current_price": 1.2998,
-        "invested_capital": 154.14,
-        "opened_at": "2026-10-24 14:20:48",
-        "pnl_net_percent": -2.23,
-        "active": true
+        "symbol": null,
+        "type": null,
+        "entry_price": 0.0,
+        "max_price": 0.0,
+        "current_price": 0.0,
+        "invested_capital": 0.0,
+        "opened_at": null,
+        "pnl_net_percent": 0.0,
+        "active": false
     },
     "slot_2": {
         "symbol": "BTC-USD",
         "type": "SHORT",
         "entry_price": 80111.3281,
         "max_price": 80012.0312,
-        "current_price": 80701.0781,
+        "current_price": 80698.9688,
         "invested_capital": 156.34,
         "opened_at": "2026-10-24 17:20:24",
-        "pnl_net_percent": -0.94,
+        "pnl_net_percent": -0.93,
         "active": true
     },
     "slot_3": {
@@ -26,16 +26,16 @@
         "type": "SHORT",
         "entry_price": 1.6389,
         "max_price": 1.621,
-        "current_price": 1.6324,
+        "current_price": 1.6276,
         "invested_capital": 156.34,
         "opened_at": "2026-10-24 17:20:24",
-        "pnl_net_percent": 0.2,
+        "pnl_net_percent": 0.49,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -30.98,
+        "total_realized_usd": -35.6,
         "wins": 13,
-        "losses": 19,
+        "losses": 20,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -324,6 +324,15 @@
                 "pnl_usd": 2.43,
                 "pnl_pct": 1.64,
                 "reason": "\ud83d\udee1\ufe0f TRAILING STOP INTRA-ORA (Picco +2.64%, incasso protetto sui 5m!)"
+            },
+            {
+                "date": "2026-10-25 02:24",
+                "symbol": "XRP-USD",
+                "type": "SHORT",
+                "invested_usd": 154.14,
+                "pnl_usd": -4.62,
+                "pnl_pct": -3.0,
+                "reason": "\ud83d\uded1 STOP LOSS INTRA-ORA (BIG CAP -3.0% toccato sui 5m)"
             }
         ]
     }
