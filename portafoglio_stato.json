@@ -3,11 +3,11 @@
         "symbol": "RENDER-USD",
         "type": "SHORT",
         "entry_price": 1.6858,
-        "max_price": 1.6858,
-        "current_price": 1.6858,
+        "max_price": 1.6765,
+        "current_price": 1.6865,
         "invested_capital": 154.8,
         "opened_at": "2026-10-25 06:26:33",
-        "pnl_net_percent": 0.0,
+        "pnl_net_percent": -0.24,
         "active": true
     },
     "slot_2": {
@@ -15,21 +15,21 @@
         "type": "SHORT",
         "entry_price": 80111.3281,
         "max_price": 80012.0312,
-        "current_price": 80525.1328,
+        "current_price": 80515.6328,
         "invested_capital": 156.34,
         "opened_at": "2026-10-24 17:20:24",
-        "pnl_net_percent": -0.72,
+        "pnl_net_percent": -0.7,
         "active": true
     },
     "slot_3": {
         "symbol": "ATOM-USD",
         "type": "SHORT",
         "entry_price": 1.6389,
-        "max_price": 1.6161,
-        "current_price": 1.6191,
+        "max_price": 1.6109,
+        "current_price": 1.6163,
         "invested_capital": 156.34,
         "opened_at": "2026-10-24 17:20:24",
-        "pnl_net_percent": 1.01,
+        "pnl_net_percent": 1.18,
         "active": true
     },
     "stats": {
