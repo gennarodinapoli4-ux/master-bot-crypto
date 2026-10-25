@@ -4,10 +4,10 @@
         "type": "SHORT",
         "entry_price": 1.6858,
         "max_price": 1.6765,
-        "current_price": 1.6865,
+        "current_price": 1.6859,
         "invested_capital": 154.8,
         "opened_at": "2026-10-25 06:26:33",
-        "pnl_net_percent": -0.24,
+        "pnl_net_percent": -0.21,
         "active": true
     },
     "slot_2": {
@@ -15,10 +15,10 @@
         "type": "SHORT",
         "entry_price": 80111.3281,
         "max_price": 80012.0312,
-        "current_price": 80515.6328,
+        "current_price": 80480.7891,
         "invested_capital": 156.34,
         "opened_at": "2026-10-24 17:20:24",
-        "pnl_net_percent": -0.7,
+        "pnl_net_percent": -0.66,
         "active": true
     },
     "slot_3": {
