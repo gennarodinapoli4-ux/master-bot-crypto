@@ -1,35 +1,35 @@
 {
     "slot_1": {
-        "symbol": null,
-        "type": null,
-        "entry_price": 0.0,
-        "max_price": 0.0,
-        "current_price": 0.0,
-        "invested_capital": 0.0,
-        "opened_at": null,
+        "symbol": "RENDER-USD",
+        "type": "SHORT",
+        "entry_price": 1.6858,
+        "max_price": 1.6858,
+        "current_price": 1.6858,
+        "invested_capital": 154.8,
+        "opened_at": "2026-10-25 06:26:33",
         "pnl_net_percent": 0.0,
-        "active": false
+        "active": true
     },
     "slot_2": {
         "symbol": "BTC-USD",
         "type": "SHORT",
         "entry_price": 80111.3281,
         "max_price": 80012.0312,
-        "current_price": 80753.3125,
+        "current_price": 80525.1328,
         "invested_capital": 156.34,
         "opened_at": "2026-10-24 17:20:24",
-        "pnl_net_percent": -1.0,
+        "pnl_net_percent": -0.72,
         "active": true
     },
     "slot_3": {
         "symbol": "ATOM-USD",
         "type": "SHORT",
         "entry_price": 1.6389,
-        "max_price": 1.6201,
-        "current_price": 1.625,
+        "max_price": 1.6161,
+        "current_price": 1.6191,
         "invested_capital": 156.34,
         "opened_at": "2026-10-24 17:20:24",
-        "pnl_net_percent": 0.65,
+        "pnl_net_percent": 1.01,
         "active": true
     },
     "stats": {
