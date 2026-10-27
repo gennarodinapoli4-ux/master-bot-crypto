@@ -4,21 +4,21 @@
         "type": "LONG",
         "entry_price": 2342.1699,
         "max_price": 2349.29,
-        "current_price": 2341.29,
+        "current_price": 2339.0601,
         "invested_capital": 153.12,
         "opened_at": "2026-10-27 19:36:49",
-        "pnl_net_percent": -0.24,
+        "pnl_net_percent": -0.33,
         "active": true
     },
     "slot_2": {
         "symbol": "BTC-USD",
-        "type": "SHORT",
-        "entry_price": 80111.3281,
-        "max_price": 79278.3516,
-        "current_price": 80580.8438,
-        "invested_capital": 156.34,
-        "opened_at": "2026-10-24 17:20:24",
-        "pnl_net_percent": -0.79,
+        "type": "LONG",
+        "entry_price": 80606.1328,
+        "max_price": 80606.1328,
+        "current_price": 80606.1328,
+        "invested_capital": 152.69,
+        "opened_at": "2026-10-27 21:28:06",
+        "pnl_net_percent": 0.0,
         "active": true
     },
     "slot_3": {
@@ -26,16 +26,16 @@
         "type": "SHORT",
         "entry_price": 101.13,
         "max_price": 99.02,
-        "current_price": 100.96,
+        "current_price": 100.82,
         "invested_capital": 154.01,
         "opened_at": "2026-10-26 08:39:07",
-        "pnl_net_percent": -0.03,
+        "pnl_net_percent": 0.11,
         "active": true
     },
     "stats": {
-        "total_realized_usd": -40.64,
+        "total_realized_usd": -41.92,
         "wins": 13,
-        "losses": 23,
+        "losses": 24,
         "history": [
             {
                 "date": "2026-10-15 07:36",
@@ -359,6 +359,15 @@
                 "invested_usd": 154.13,
                 "pnl_usd": -2.68,
                 "pnl_pct": -1.74,
+                "reason": "\ud83d\udd04 INVERSIONE TREND/NOTIZIE (Segnale opposto LONG forte)"
+            },
+            {
+                "date": "2026-10-27 21:28",
+                "symbol": "BTC-USD",
+                "type": "SHORT",
+                "invested_usd": 156.34,
+                "pnl_usd": -1.28,
+                "pnl_pct": -0.82,
                 "reason": "\ud83d\udd04 INVERSIONE TREND/NOTIZIE (Segnale opposto LONG forte)"
             }
         ]
