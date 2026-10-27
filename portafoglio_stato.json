@@ -4,10 +4,10 @@
         "type": "SHORT",
         "entry_price": 2306.74,
         "max_price": 2291.3999,
-        "current_price": 2308.5601,
+        "current_price": 2301.75,
         "invested_capital": 154.13,
         "opened_at": "2026-10-26 03:28:03",
-        "pnl_net_percent": -0.28,
+        "pnl_net_percent": 0.02,
         "active": true
     },
     "slot_2": {
@@ -15,21 +15,21 @@
         "type": "SHORT",
         "entry_price": 80111.3281,
         "max_price": 79278.3516,
-        "current_price": 79597.8438,
+        "current_price": 79532.1328,
         "invested_capital": 156.34,
         "opened_at": "2026-10-24 17:20:24",
-        "pnl_net_percent": 0.44,
+        "pnl_net_percent": 0.52,
         "active": true
     },
     "slot_3": {
         "symbol": "SOL-USD",
         "type": "SHORT",
         "entry_price": 101.13,
-        "max_price": 99.3,
-        "current_price": 99.69,
+        "max_price": 99.02,
+        "current_price": 99.51,
         "invested_capital": 154.01,
         "opened_at": "2026-10-26 08:39:07",
-        "pnl_net_percent": 1.22,
+        "pnl_net_percent": 1.4,
         "active": true
     },
     "stats": {
