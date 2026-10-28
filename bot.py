@@ -409,4 +409,10 @@ def run_trading_bot():
     for h in stats.get("history", [])[-5:]:
         icon = "✅" if h["pnl_usd"] >= 0 else "❌"
         print(f"   {icon} [{h['date']}] {h['symbol']} ({h['type']}) | {h['pnl_usd']:+.2f}$ ({h['pnl_pct']:+.2f}%) | {h['reason']}")
-    print("========
+    print("==================================================================")
+
+    state["stats"] = stats
+    save_state(state)
+
+if __name__ == "__main__":
+    run_trading_bot()
