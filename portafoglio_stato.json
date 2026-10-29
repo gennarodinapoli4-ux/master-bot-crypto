@@ -155,6 +155,11 @@
             "date": "2026-10-29 18:39",
             "capital": 500.0,
             "port_return_pct": 0.0
+        },
+        {
+            "date": "2026-10-29 19:43",
+            "capital": 500.0,
+            "port_return_pct": 0.0
         }
     ]
 }
