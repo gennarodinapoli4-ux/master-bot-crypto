@@ -1,132 +1,147 @@
 import os
 import sys
-import subprocess
-
-# --- AUTO-INSTALLAZIONE DIPENDENZE ---
-required_packages = ['pandas', 'numpy', 'yfinance', 'requests']
-for package in required_packages:
-    try:
-        __import__(package)
-    except ImportError:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-
 import json
+import time
 import requests
+import yfinance as yf
 import pandas as pd
 import numpy as np
-import yfinance as yf
 from datetime import datetime
-import warnings
-warnings.filterwarnings('ignore')
 
-# ==========================================
-# CONFIGURAZIONE STRATEGIA DEFINITIVA
-# ==========================================
-INITIAL_CAPITAL = 500.0
+# ==============================================================================
+# ⚙️ CONFIGURAZIONE BOT MULTI-SETTORE (FIX COMPLETO DATI E STATO)
+# ==============================================================================
 STATE_FILE = "portafoglio_stato.json"
-EXCHANGE_FEE_RATE = 0.0005  # 0.05% fee per lato
-SLIPPAGE_RATE = 0.0002      # 0.02% slippage stimato
+INITIAL_CAPITAL = 500.0
 
-# Paniere Multi-Settore Definitivo
-ASSETS = [
-    "BTC-USD", "ETH-USD", "SOL-USD",  # Crypto
-    "NVDA", "AAPL", "MSFT",          # Big Tech USA
-    "^GSPC",                         # Indice S&P 500
-    "GC=F"                           # Oro
-]
+ASSETS = ["BTC-USD", "ETH-USD", "SOL-USD", "NVDA", "AAPL", "MSFT", "^GSPC", "GC=F"]
 
-# Parametri Ottimizzati Definitivi
+# Scarichiamo 730 giorni (2 anni) per avere oltre 17.000 ore su crypto e ~3.500 su azioni,
+# esattamente come nel backtest di Google Colab!
+DATA_PERIOD = "730d"
 HOURS_PER_DAY = 24
+
 SMA_DAYS = 100
 MOM_DAYS = 30
 DON_DAYS = 50
+VOL_DAYS = 45
 
-VOL_DAYS = 45        # Finestra volatilità ottimizzata a 45 giorni
-VOL_SCALE = 0.8      
-MAX_WEIGHT = 0.35    # Peso massimo per singolo asset al 35%
-REB_THRESH = 0.08    # Soglia di ribilanciamento per tagliare l'over-trading
+VOL_SCALE = 0.80
+MAX_WEIGHT = 0.35
+REB_THRESH = 0.08
+COST_RATE = (0.05 + 0.02) / 100.0  # 0.07% tra fee e slippage
 
-# ==========================================
-# NOTIFICHE TELEGRAM
-# ==========================================
-def send_telegram(msg):
-    token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
-    if token and chat_id:
-        try:
-            url = f"https://api.telegram.org/bot{token}/sendMessage"
-            requests.post(url, json={"chat_id": chat_id, "text": msg}, timeout=10)
-        except Exception:
-            pass
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
-# ==========================================
-# GESTIONE STATO E MEMORIA PORTAFOGLIO
-# ==========================================
+
+def send_telegram(msg: str):
+    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
+        print("ℹ️ Telegram non configurato (variabili d'ambiente mancanti).")
+        return
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    try:
+        r = requests.post(url, json={"chat_id": TELEGRAM_CHAT_ID, "text": msg, "parse_mode": "HTML"}, timeout=15)
+        if r.status_code != 200:
+            print(f"⚠️ Errore invio Telegram: {r.text}")
+    except Exception as e:
+        print(f"⚠️ Eccezione Telegram: {e}")
+
+
 def load_state():
     if os.path.exists(STATE_FILE):
         try:
             with open(STATE_FILE, "r") as f:
                 state = json.load(f)
-                if isinstance(state, dict) and "weights" in state:
-                    return state
+                # Garantiamo retrocompatibilità se manca 'last_prices'
+                if "last_prices" not in state:
+                    state["last_prices"] = {}
+                return state
         except Exception as e:
-            print(f"Errore lettura stato: {e}")
-            
-    initial_state = {
+            print(f"⚠️ Errore lettura stato, riparto da default: {e}")
+    return {
         "capital": INITIAL_CAPITAL,
         "weights": {a: 0.0 for a in ASSETS},
+        "last_prices": {},
         "history": []
     }
-    save_state(initial_state)
-    return initial_state
+
 
 def save_state(state):
-    try:
-        with open(STATE_FILE, "w") as f:
-            json.dump(state, f, indent=4)
-    except Exception as e:
-        print(f"Errore salvataggio stato: {e}")
+    with open(STATE_FILE, "w") as f:
+        json.dump(state, f, indent=4)
 
-# ==========================================
-# MOTORE DI CALCOLO TREND FOLLOWING FINALE
-# ==========================================
-def run_trend_bot():
-    now_dt = datetime.now()
-    print(f"[{now_dt.strftime('%Y-%m-%d %H:%M:%S')}] 🚀 Avvio Bot Definitivo Multi-Settore")
-    print("==================================================================")
-    
+
+def download_market_data():
+    """Scarica i dati un ticker alla volta o con threads=False per evitare 'database is locked'."""
+    print(f"⏳ Scaricamento dati storici orari ({DATA_PERIOD}) con threads=False...")
+    raw = yf.download(
+        ASSETS,
+        period=DATA_PERIOD,
+        interval="1h",
+        auto_adjust=True,
+        group_by="ticker",
+        threads=False,  # Evita SQLite OperationalError('database is locked')
+        progress=False
+    )
+    if raw is None or raw.empty:
+        raise RuntimeError("Download dati fallito o vuoto.")
+
+    H = pd.DataFrame({a: raw[a]["High"] for a in ASSETS if a in raw.columns.levels[0]})
+    L = pd.DataFrame({a: raw[a]["Low"] for a in ASSETS if a in raw.columns.levels[0]})
+    C = pd.DataFrame({a: raw[a]["Close"] for a in ASSETS if a in raw.columns.levels[0]})
+
+    for d in (H, L, C):
+        d.index = d.index.tz_localize(None) if d.index.tz is None else d.index.tz_convert(None)
+        # SOLO ffill() per allineare le chiusure di borsa alle ore del weekend crypto, MAI bfill()!
+        d.ffill(inplace=True)
+
+    # Scartiamo l'ultima candela se è appena iniziata ed è potenzialmente incompleta,
+    # oppure teniamo fino alla penultima candela chiusa per stabilità dei segnali
+    if len(C) > 2:
+        H = H.iloc[:-1]
+        L = L.iloc[:-1]
+        C = C.iloc[:-1]
+
+    return H, L, C
+
+
+def main():
+    now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[{now_str}] 🚀 Avvio Bot Multi-Settore (Fix Completo)")
+    print("=" * 70)
+
     state = load_state()
-    current_capital = float(state.get("capital", INITIAL_CAPITAL))
-    old_weights = state.get("weights", {a: 0.0 for a in ASSETS})
-    history = state.get("history", [])
+    capital = float(state["capital"])
+    current_weights = pd.Series(state["weights"]).reindex(ASSETS).fillna(0.0)
+    last_prices = state.get("last_prices", {})
 
-    print(f"💼 Capitale Attuale in Gestione: {current_capital:.2f} $")
+    print(f"💼 Capitale Attuale in Gestione: {capital:.2f} $")
 
-    print("⏳ Scaricamento dati storici orari...")
     try:
-        raw = yf.download(ASSETS, period="60d", interval="1h", auto_adjust=True, group_by="ticker", progress=False)
-        if raw.empty:
-            print("❌ Errore: Dati Yahoo Finance vuoti.")
-            return
-        
-        if isinstance(raw.columns, pd.MultiIndex):
-            H = pd.DataFrame({a: raw[a]["High"] for a in ASSETS if a in raw.columns.levels[0]})
-            L = pd.DataFrame({a: raw[a]["Low"] for a in ASSETS if a in raw.columns.levels[0]})
-            C = pd.DataFrame({a: raw[a]["Close"] for a in ASSETS if a in raw.columns.levels[0]})
-        else:
-            H = pd.DataFrame({a: raw[f"High_{a}"] if f"High_{a}" in raw.columns else raw['High'] for a in ASSETS})
-            L = pd.DataFrame({a: raw[f"Low_{a}"] if f"Low_{a}" in raw.columns else raw['Low'] for a in ASSETS})
-            C = pd.DataFrame({a: raw[f"Close_{a}"] if f"Close_{a}" in raw.columns else raw['Close'] for a in ASSETS})
-
-        for d in (H, L, C):
-            d.index = d.index.tz_localize(None) if d.index.tz is None else d.index.tz_convert(None)
-            d.ffill(inplace=True)
-            d.bfill(inplace=True)
-            
+        H, L, C = download_market_data()
     except Exception as e:
-        print(f"❌ Errore nel download dei dati: {e}")
-        return
+        print(f"❌ Errore critico durante il download dati: {e}")
+        sys.exit(1)
 
+    latest_prices = C.iloc[-1]
+
+    # 1. Aggiornamento preciso del Capitale in base ai prezzi reali salvati
+    port_ret = 0.0
+    if last_prices and current_weights.sum() > 0:
+        prev_p = pd.Series(last_prices).reindex(ASSETS)
+        valid = prev_p.notna() & (prev_p > 0) & latest_prices.notna()
+        asset_rets = pd.Series(0.0, index=ASSETS)
+        asset_rets[valid] = (latest_prices[valid] / prev_p[valid]) - 1.0
+
+        port_ret = float((current_weights * asset_rets).sum())
+        capital *= (1.0 + port_ret)
+
+        # Aggiornamento naturale dei pesi post-movimento di mercato (drift)
+        if (1.0 + port_ret) > 0:
+            current_weights = current_weights * (1.0 + asset_rets) / (1.0 + port_ret)
+
+    # 2. Calcolo Indicatori (identico al backtest di Colab su 730 giorni)
     n_sma = SMA_DAYS * HOURS_PER_DAY
     n_mom = MOM_DAYS * HOURS_PER_DAY
     n_don = DON_DAYS * HOURS_PER_DAY
@@ -134,65 +149,78 @@ def run_trend_bot():
 
     s1 = np.sign(C - C.rolling(n_sma).mean())
     s2 = np.sign(C.pct_change(n_mom))
+
     hi = H.rolling(n_don).max().shift(1)
     lo = L.rolling(n_don).min().shift(1)
     brk = pd.DataFrame(np.where(C >= hi, 1.0, np.where(C <= lo, -1.0, np.nan)), index=C.index, columns=C.columns)
     s3 = brk.ffill().fillna(0.0).where(hi.notna())
 
-    score = ((s1 + s2 + s3) / 3.0).clip(lower=0)
+    score = ((s1 + s2 + s3) / 3.0).clip(lower=0.0)
     vol = C.pct_change().rolling(n_vol).std() * np.sqrt(365 * HOURS_PER_DAY)
-    
+
     avail = score.notna() & vol.notna() & (vol > 0)
     N_avail = avail.sum(axis=1).clip(lower=1)
-    
-    w_target_df = (score * (VOL_SCALE / vol)).div(N_avail, axis=0).where(avail, 0.0).clip(0, MAX_WEIGHT)
-    
-    latest_weights = w_target_df.iloc[-1].to_dict()
-    current_returns = C.pct_change().iloc[-1].fillna(0.0).to_dict()
 
-    port_return = sum(old_weights.get(a, 0.0) * current_returns.get(a, 0.0) for a in ASSETS)
-    new_capital_before_costs = current_capital * (1.0 + port_return)
+    w_target_df = (score * (VOL_SCALE / vol)).div(N_avail, axis=0).where(avail, 0.0).clip(0.0, MAX_WEIGHT)
+    target_weights = w_target_df.iloc[-1].reindex(ASSETS).fillna(0.0)
 
-    total_trade_diff = sum(abs(latest_weights.get(a, 0.0) - old_weights.get(a, 0.0)) for a in ASSETS)
-    
-    costs_usd = 0.0
-    final_weights = old_weights.copy()
+    # Normalizzazione se la somma dei pesi supera 1.0 (Leva max 1x per il Core)
+    if target_weights.sum() > 1.0:
+        target_weights = target_weights / target_weights.sum()
 
-    if total_trade_diff > REB_THRESH:
-        cost_rate = EXCHANGE_FEE_RATE + SLIPPAGE_RATE
-        costs_usd = total_trade_diff * new_capital_before_costs * cost_rate
-        current_capital = new_capital_before_costs - costs_usd
-        final_weights = latest_weights
-        
-        trade_msg = (
-            f"🔄 RIBILANCIAMENTO DEFINITIVO MULTI-SETTORE\n"
-            f"💰 Nuovo Capitale: {current_capital:.2f} $\n"
-            f"📉 Costi Operativi: -{costs_usd:.2f} $\n"
-            f"📊 Pesi per Asset:\n" + 
-            "\n".join([f"   - {k}: {v*100:.1f}%" for k, v in final_weights.items() if v > 0])
+    # Stampiamo in console i pesi target calcolati per totale trasparenza!
+    print("📊 Pesi Target calcolati dal modello in questo momento:")
+    for a in ASSETS:
+        print(f"   - {a:8s}: {target_weights[a]*100:5.1f}% (Attuale: {current_weights[a]*100:5.1f}%)")
+
+    # 3. Verifica soglia di ribilanciamento
+    diff = float(np.abs(target_weights - current_weights).sum())
+    rebalanced = False
+
+    if diff > REB_THRESH or (target_weights.sum() == 0 and current_weights.sum() > 0):
+        fee_cost = diff * capital * COST_RATE
+        capital -= fee_cost
+        current_weights = target_weights.copy()
+        rebalanced = True
+        print(f"🔄 Ribilanciamento eseguito! Variazione: {diff:.3f} | Costo stimato: {fee_cost:.2f} $")
+
+        alloc_lines = [
+            f"• <b>{a}</b>: {w*100:.1f}% ({w*capital:.1f} $)"
+            for a, w in current_weights.items() if w > 0.005
+        ]
+        alloc_str = "\n".join(alloc_lines) if alloc_lines else "• 100% Liquidità (Cash)"
+
+        msg = (
+            f"🔄 <b>RIBILANCIAMENTO PORTAFOGLIO</b>\n"
+            f"📅 {now_str} UTC\n"
+            f"💰 <b>Capitale:</b> {capital:.2f} $\n"
+            f"📉 <b>Costi operazione:</b> -{fee_cost:.2f} $\n\n"
+            f"📊 <b>Nuova Allocazione:</b>\n{alloc_str}"
         )
-        print(trade_msg)
-        send_telegram(trade_msg)
+        send_telegram(msg)
     else:
-        current_capital = new_capital_before_costs
-        print(f"⏸️ Variazione pesi sotto soglia ({total_trade_diff:.3f} <= {REB_THRESH}). Nessun ribilanciamento.")
-        print(f"💰 Capitale aggiornato: {current_capital:.2f} $")
+        print(f"⏸️ Variazione pesi sotto soglia ({diff:.3f} <= {REB_THRESH}). Nessun ribilanciamento.")
 
-    state["capital"] = round(current_capital, 2)
-    state["weights"] = {k: round(float(v), 4) for k, v in final_weights.items()}
-    
-    history.append({
-        "date": now_dt.strftime("%Y-%m-%d %H:%M"),
-        "capital": round(current_capital, 2),
-        "port_return_pct": round(port_return * 100, 3)
+    # 4. Salvataggio Stato e Prezzi Correnti
+    state["capital"] = round(capital, 4)
+    state["weights"] = {a: round(float(current_weights[a]), 4) for a in ASSETS}
+    state["last_prices"] = {a: round(float(latest_prices[a]), 4) for a in ASSETS if pd.notna(latest_prices[a])}
+
+    state["history"].append({
+        "date": datetime.utcnow().strftime("%Y-%m-%d %H:%M"),
+        "capital": round(capital, 2),
+        "port_return_pct": round(port_ret * 100, 4),
+        "rebalanced": rebalanced
     })
-    state["history"] = history[-50:]
+    # Manteniamo gli ultimi 500 record nello storico per non appesantire il JSON
+    state["history"] = state["history"][-500:]
 
     save_state(state)
-    print("==================================================================")
-    print(f"✅ Esecuzione completata. Capitale Finale: {current_capital:.2f} $")
-    print("==================================================================")
+    print(f"💰 Capitale aggiornato: {capital:.2f} $")
+    print("=" * 70)
+    print(f"✅ Esecuzione completata con successo.")
+
 
 if __name__ == "__main__":
-    run_trend_bot()
+    main()
     
