@@ -1,11 +1,22 @@
 import os
 import sys
 import json
-import time
-import requests
-import yfinance as yf
-import pandas as pd
-import numpy as np
+import subprocess
+
+# Auto-installazione pacchetti se non presenti nel workflow YAML
+try:
+    import requests
+    import yfinance as yf
+    import pandas as pd
+    import numpy as np
+except ImportError:
+    print("📦 Installazione librerie necessarie in corso...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "requests", "yfinance", "pandas", "numpy"])
+    import requests
+    import yfinance as yf
+    import pandas as pd
+    import numpy as np
+
 from datetime import datetime
 
 # ==============================================================================
@@ -16,8 +27,7 @@ INITIAL_CAPITAL = 500.0
 
 ASSETS = ["BTC-USD", "ETH-USD", "SOL-USD", "NVDA", "AAPL", "MSFT", "^GSPC", "GC=F"]
 
-# Scarichiamo 730 giorni (2 anni) per avere oltre 17.000 ore su crypto e ~3.500 su azioni,
-# esattamente come nel backtest di Google Colab!
+# Scarichiamo 730 giorni (2 anni) per avere lo storico completo
 DATA_PERIOD = "730d"
 HOURS_PER_DAY = 24
 
@@ -31,13 +41,14 @@ MAX_WEIGHT = 0.35
 REB_THRESH = 0.08
 COST_RATE = (0.05 + 0.02) / 100.0  # 0.07% tra fee e slippage
 
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
+# Legge sia TELEGRAM_BOT_TOKEN (dal tuo workflow) sia TELEGRAM_TOKEN
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or os.getenv("TELEGRAM_TOKEN") or ""
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID") or ""
 
 
 def send_telegram(msg: str):
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-        print("ℹ️ Telegram non configurato (variabili d'ambiente mancanti).")
+        print("ℹ️ Telegram non configurato (Secrets mancanti o vuoti su GitHub).")
         return
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     try:
@@ -53,7 +64,6 @@ def load_state():
         try:
             with open(STATE_FILE, "r") as f:
                 state = json.load(f)
-                # Garantiamo retrocompatibilità se manca 'last_prices'
                 if "last_prices" not in state:
                     state["last_prices"] = {}
                 return state
@@ -73,7 +83,6 @@ def save_state(state):
 
 
 def download_market_data():
-    """Scarica i dati un ticker alla volta o con threads=False per evitare 'database is locked'."""
     print(f"⏳ Scaricamento dati storici orari ({DATA_PERIOD}) con threads=False...")
     raw = yf.download(
         ASSETS,
@@ -81,7 +90,7 @@ def download_market_data():
         interval="1h",
         auto_adjust=True,
         group_by="ticker",
-        threads=False,  # Evita SQLite OperationalError('database is locked')
+        threads=False,
         progress=False
     )
     if raw is None or raw.empty:
@@ -93,11 +102,8 @@ def download_market_data():
 
     for d in (H, L, C):
         d.index = d.index.tz_localize(None) if d.index.tz is None else d.index.tz_convert(None)
-        # SOLO ffill() per allineare le chiusure di borsa alle ore del weekend crypto, MAI bfill()!
         d.ffill(inplace=True)
 
-    # Scartiamo l'ultima candela se è appena iniziata ed è potenzialmente incompleta,
-    # oppure teniamo fino alla penultima candela chiusa per stabilità dei segnali
     if len(C) > 2:
         H = H.iloc[:-1]
         L = L.iloc[:-1]
@@ -137,11 +143,10 @@ def main():
         port_ret = float((current_weights * asset_rets).sum())
         capital *= (1.0 + port_ret)
 
-        # Aggiornamento naturale dei pesi post-movimento di mercato (drift)
         if (1.0 + port_ret) > 0:
             current_weights = current_weights * (1.0 + asset_rets) / (1.0 + port_ret)
 
-    # 2. Calcolo Indicatori (identico al backtest di Colab su 730 giorni)
+    # 2. Calcolo Indicatori (su 730 giorni)
     n_sma = SMA_DAYS * HOURS_PER_DAY
     n_mom = MOM_DAYS * HOURS_PER_DAY
     n_don = DON_DAYS * HOURS_PER_DAY
@@ -164,11 +169,9 @@ def main():
     w_target_df = (score * (VOL_SCALE / vol)).div(N_avail, axis=0).where(avail, 0.0).clip(0.0, MAX_WEIGHT)
     target_weights = w_target_df.iloc[-1].reindex(ASSETS).fillna(0.0)
 
-    # Normalizzazione se la somma dei pesi supera 1.0 (Leva max 1x per il Core)
     if target_weights.sum() > 1.0:
         target_weights = target_weights / target_weights.sum()
 
-    # Stampiamo in console i pesi target calcolati per totale trasparenza!
     print("📊 Pesi Target calcolati dal modello in questo momento:")
     for a in ASSETS:
         print(f"   - {a:8s}: {target_weights[a]*100:5.1f}% (Attuale: {current_weights[a]*100:5.1f}%)")
@@ -212,7 +215,6 @@ def main():
         "port_return_pct": round(port_ret * 100, 4),
         "rebalanced": rebalanced
     })
-    # Manteniamo gli ultimi 500 record nello storico per non appesantire il JSON
     state["history"] = state["history"][-500:]
 
     save_state(state)
@@ -223,4 +225,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
