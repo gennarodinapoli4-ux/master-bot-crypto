@@ -20,7 +20,7 @@ except ImportError:
 from datetime import datetime
 
 # ==============================================================================
-# ⚙️ CONFIGURAZIONE BOT MULTI-SETTORE (FIX COMPLETO DATI E STATO)
+# ⚙️ CONFIGURAZIONE BOT MULTI-SETTORE (CON PREZZO DI CARICO E PERFORMANCE)
 # ==============================================================================
 STATE_FILE = "portafoglio_stato.json"
 INITIAL_CAPITAL = 500.0
@@ -66,6 +66,8 @@ def load_state():
                 state = json.load(f)
                 if "last_prices" not in state:
                     state["last_prices"] = {}
+                if "buy_prices" not in state:
+                    state["buy_prices"] = {}
                 return state
         except Exception as e:
             print(f"⚠️ Errore lettura stato, riparto da default: {e}")
@@ -73,6 +75,7 @@ def load_state():
         "capital": INITIAL_CAPITAL,
         "weights": {a: 0.0 for a in ASSETS},
         "last_prices": {},
+        "buy_prices": {},
         "history": []
     }
 
@@ -114,13 +117,14 @@ def download_market_data():
 
 def main():
     now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{now_str}] 🚀 Avvio Bot Multi-Settore (Fix Completo)")
+    print(f"[{now_str}] 🚀 Avvio Bot Multi-Settore (Con Prezzo di Carico)")
     print("=" * 70)
 
     state = load_state()
     capital = float(state["capital"])
     current_weights = pd.Series(state["weights"]).reindex(ASSETS).fillna(0.0)
     last_prices = state.get("last_prices", {})
+    saved_buy_prices = state.get("buy_prices", {})
 
     print(f"💼 Capitale Attuale in Gestione: {capital:.2f} $")
 
@@ -186,28 +190,61 @@ def main():
         current_weights = target_weights.copy()
         rebalanced = True
         print(f"🔄 Ribilanciamento eseguito! Variazione: {diff:.3f} | Costo stimato: {fee_cost:.2f} $")
-
-        alloc_lines = [
-            f"• <b>{a}</b>: {w*100:.1f}% ({w*capital:.1f} $)"
-            for a, w in current_weights.items() if w > 0.005
-        ]
-        alloc_str = "\n".join(alloc_lines) if alloc_lines else "• 100% Liquidità (Cash)"
-
-        msg = (
-            f"🔄 <b>RIBILANCIAMENTO PORTAFOGLIO</b>\n"
-            f"📅 {now_str} UTC\n"
-            f"💰 <b>Capitale:</b> {capital:.2f} $\n"
-            f"📉 <b>Costi operazione:</b> -{fee_cost:.2f} $\n\n"
-            f"📊 <b>Nuova Allocazione:</b>\n{alloc_str}"
-        )
-        send_telegram(msg)
     else:
         print(f"⏸️ Variazione pesi sotto soglia ({diff:.3f} <= {REB_THRESH}). Nessun ribilanciamento.")
 
-    # 4. Salvataggio Stato e Prezzi Correnti
+    # 4. Gestione Prezzi di Carico (Buy Prices)
+    new_buy_prices = {}
+    for a in ASSETS:
+        w = float(current_weights[a])
+        cur_p = float(latest_prices[a]) if a in latest_prices and pd.notna(latest_prices[a]) else 0.0
+        prev_w = float(state["weights"].get(a, 0.0))
+        
+        if w > 0.005:
+            # Mantiene il prezzo di carico precedente se la posizione era già aperta, altrimenti fissa il prezzo di carico attuale
+            if prev_w > 0.005 and a in saved_buy_prices and saved_buy_prices[a] > 0:
+                new_buy_prices[a] = saved_buy_prices[a]
+            else:
+                new_buy_prices[a] = cur_p
+        else:
+            new_buy_prices[a] = 0.0
+
+    # 5. Generazione Report Dettagliato (Console e Telegram)
+    report_lines = []
+    print("\n" + "─" * 50)
+    print("📈 DETTAGLIO POSIZIONI E PERFORMANCE:")
+    for a in ASSETS:
+        w = float(current_weights[a])
+        if w > 0.005:
+            cur_p = float(latest_prices[a]) if a in latest_prices and pd.notna(latest_prices[a]) else 0.0
+            buy_p = new_buy_prices.get(a, cur_p)
+            val_usd = capital * w
+            perf = ((cur_p - buy_p) / buy_p * 100.0) if buy_p > 0 else 0.0
+            
+            print(f"   - {a}: {w*100:.1f}% ({val_usd:.2f} $) | Carico: {buy_p:.2f} $ | Attuale: {cur_p:.2f} $ | Perf: {perf:+.2f}%")
+            report_lines.append(
+                f"• <b>{a}</b>: {w*100:.1f}% ({val_usd:.2f} $)\n"
+                f"  └ Carico: {buy_p:.2f} $ | Attuale: {cur_p:.2f} $ | Perf: <b>{perf:+.2f}%</b>"
+            )
+    print("─" * 50)
+
+    alloc_str = "\n".join(report_lines) if report_lines else "• 100% Liquidità (Cash)"
+
+    # Invio notifica Telegram dettagliata ad ogni esecuzione
+    msg = (
+        f"🤖 <b>REPORT BOT MULTI-SETTORE</b>\n"
+        f"📅 {now_str} UTC\n"
+        f"💰 <b>Capitale Totale:</b> {capital:.2f} $\n"
+        f"{'🔄 <b>Ribilanciamento Eseguito</b> (Costi: -' + f'{fee_cost:.2f}' + ' $)\n' if rebalanced else '⏸️ Nessun ribilanciamento (Sotto soglia)\n'}"
+        f"\n📊 <b>Posizioni Attive & Performance:</b>\n{alloc_str}"
+    )
+    send_telegram(msg)
+
+    # 6. Salvataggio Stato
     state["capital"] = round(capital, 4)
     state["weights"] = {a: round(float(current_weights[a]), 4) for a in ASSETS}
     state["last_prices"] = {a: round(float(latest_prices[a]), 4) for a in ASSETS if pd.notna(latest_prices[a])}
+    state["buy_prices"] = {a: round(float(new_buy_prices[a]), 4) for a in ASSETS}
 
     state["history"].append({
         "date": datetime.utcnow().strftime("%Y-%m-%d %H:%M"),
