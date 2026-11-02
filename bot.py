@@ -183,6 +183,7 @@ def main():
     # 3. Verifica soglia di ribilanciamento
     diff = float(np.abs(target_weights - current_weights).sum())
     rebalanced = False
+    fee_cost = 0.0
 
     if diff > REB_THRESH or (target_weights.sum() == 0 and current_weights.sum() > 0):
         fee_cost = diff * capital * COST_RATE
@@ -201,7 +202,6 @@ def main():
         prev_w = float(state["weights"].get(a, 0.0))
         
         if w > 0.005:
-            # Mantiene il prezzo di carico precedente se la posizione era già aperta, altrimenti fissa il prezzo di carico attuale
             if prev_w > 0.005 and a in saved_buy_prices and saved_buy_prices[a] > 0:
                 new_buy_prices[a] = saved_buy_prices[a]
             else:
@@ -213,6 +213,7 @@ def main():
     report_lines = []
     print("\n" + "─" * 50)
     print("📈 DETTAGLIO POSIZIONI E PERFORMANCE:")
+    
     for a in ASSETS:
         w = float(current_weights[a])
         if w > 0.005:
@@ -222,21 +223,32 @@ def main():
             perf = ((cur_p - buy_p) / buy_p * 100.0) if buy_p > 0 else 0.0
             
             print(f"   - {a}: {w*100:.1f}% ({val_usd:.2f} $) | Carico: {buy_p:.2f} $ | Attuale: {cur_p:.2f} $ | Perf: {perf:+.2f}%")
+            
+            pct_text = f"{w*100:.1f}%"
+            val_text = f"{val_usd:.2f}"
+            buy_text = f"{buy_p:.2f}"
+            cur_text = f"{cur_p:.2f}"
+            perf_text = f"{perf:+.2f}%"
+            
             report_lines.append(
-                f"• <b>{a}</b>: {w*100:.1f}% ({val_usd:.2f} $)\n"
-                f"  └ Carico: {buy_p:.2f} $ | Attuale: {cur_p:.2f} $ | Perf: <b>{perf:+.2f}%</b>"
+                f"• <b>{a}</b>: {pct_text} ({val_text} $)\n"
+                f"  └ Carico: {buy_text} $ | Attuale: {cur_text} $ | Perf: <b>{perf_text}</b>"
             )
     print("─" * 50)
 
     alloc_str = "\n".join(report_lines) if report_lines else "• 100% Liquidità (Cash)"
 
-    # Invio notifica Telegram dettagliata ad ogni esecuzione
+    if rebalanced:
+        reb_status_text = f"🔄 <b>Ribilanciamento Eseguito</b> (Costi: -{fee_cost:.2f} $)\n"
+    else:
+        reb_status_text = "⏸️ Nessun ribilanciamento (Sotto soglia)\n"
+
     msg = (
         f"🤖 <b>REPORT BOT MULTI-SETTORE</b>\n"
         f"📅 {now_str} UTC\n"
         f"💰 <b>Capitale Totale:</b> {capital:.2f} $\n"
-        f"{'🔄 <b>Ribilanciamento Eseguito</b> (Costi: -' + f'{fee_cost:.2f}' + ' $)\n' if rebalanced else '⏸️ Nessun ribilanciamento (Sotto soglia)\n'}"
-        f"\n📊 <b>Posizioni Attive & Performance:</b>\n{alloc_str}"
+        f"{reb_status_text}\n"
+        f"📊 <b>Posizioni Attive & Performance:</b>\n{alloc_str}"
     )
     send_telegram(msg)
 
@@ -262,4 +274,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
