@@ -1538,12 +1538,18 @@
             "capital": 488.94,
             "port_return_pct": -0.0,
             "rebalanced": false
+        },
+        {
+            "date": "2026-11-08 20:29",
+            "capital": 488.94,
+            "port_return_pct": -0.0,
+            "rebalanced": false
         }
     ],
     "last_prices": {
-        "BTC-USD": 75845.0312,
-        "ETH-USD": 2233.5,
-        "SOL-USD": 89.44,
+        "BTC-USD": 75834.2891,
+        "ETH-USD": 2229.52,
+        "SOL-USD": 89.48,
         "NVDA": 186.68,
         "AAPL": 342.365,
         "MSFT": 530.55,
