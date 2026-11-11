@@ -1,12 +1,12 @@
 {
-    "capital": 486.0081,
+    "capital": 486.2745,
     "weights": {
         "BTC-USD": 0.0,
         "ETH-USD": 0.0,
         "SOL-USD": 0.0,
         "NVDA": 0.0,
-        "AAPL": 0.35,
-        "MSFT": 0.1142,
+        "AAPL": 0.3504,
+        "MSFT": 0.1141,
         "^GSPC": 0.0,
         "GC=F": 0.0
     },
@@ -1904,17 +1904,23 @@
             "capital": 486.01,
             "port_return_pct": -0.3874,
             "rebalanced": true
+        },
+        {
+            "date": "2026-11-11 16:47",
+            "capital": 486.27,
+            "port_return_pct": 0.0548,
+            "rebalanced": false
         }
     ],
     "last_prices": {
-        "BTC-USD": 73942.3281,
-        "ETH-USD": 2073.26,
-        "SOL-USD": 84.74,
-        "NVDA": 174.2299,
-        "AAPL": 353.54,
-        "MSFT": 519.8834,
-        "^GSPC": 7589.4199,
-        "GC=F": 4013.0
+        "BTC-USD": 74153.5078,
+        "ETH-USD": 2073.6799,
+        "SOL-USD": 84.62,
+        "NVDA": 176.15,
+        "AAPL": 354.11,
+        "MSFT": 519.8101,
+        "^GSPC": 7615.6699,
+        "GC=F": 4011.8
     },
     "buy_prices": {
         "BTC-USD": 0.0,
