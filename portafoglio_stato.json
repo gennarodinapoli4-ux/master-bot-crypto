@@ -2312,17 +2312,23 @@
             "capital": 481.09,
             "port_return_pct": 0.237,
             "rebalanced": false
+        },
+        {
+            "date": "2026-11-25 11:07",
+            "capital": 481.09,
+            "port_return_pct": 0.0,
+            "rebalanced": false
         }
     ],
     "last_prices": {
-        "BTC-USD": 59569.9219,
-        "ETH-USD": 1670.64,
-        "SOL-USD": 69.53,
-        "NVDA": 155.48,
+        "BTC-USD": 58818.0703,
+        "ETH-USD": 1646.48,
+        "SOL-USD": 67.73,
+        "NVDA": 155.47,
         "AAPL": 354.19,
         "MSFT": 496.4701,
         "^GSPC": 7202.4502,
-        "GC=F": 3547.5
+        "GC=F": 3559.8999
     },
     "buy_prices": {
         "BTC-USD": 0.0,
